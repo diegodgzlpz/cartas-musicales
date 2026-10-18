@@ -634,10 +634,10 @@
     return `M${x0.toFixed(3)} ${y0.toFixed(3)}A${r} ${r} 0 ${large} 0 ${x1.toFixed(3)} ${y1.toFixed(3)}`;
   }
 
-  function footerLabels(svg, color, id) {
+  // Sin número de carta: no se muestra para que no se pueda memorizar
+  function footerLabels(svg, color) {
     const y = PAGE - BLEED - 3.3;
     el("text", { x: BLEED + 2.2, y, "font-size": 5.5 * PT, fill: color }, svg).textContent = DECK_CODE;
-    el("text", { x: PAGE - BLEED - 2.2, y, "font-size": 5.5 * PT, fill: color, "text-anchor": "end" }, svg).textContent = id;
   }
 
   // ---- Cara QR ----
@@ -672,7 +672,7 @@
     }
     el("path", { d, fill: "#000", "shape-rendering": "crispEdges" }, g);
 
-    footerLabels(svg, "#FFFFFF", card.id);
+    footerLabels(svg, "#FFFFFF");
     return svg;
   }
 
@@ -702,7 +702,7 @@
     title.dataset.min = 7;
     title.dataset.truncate = "1";
 
-    footerLabels(svg, "#000000", card.id);
+    footerLabels(svg, "#000000");
     return svg;
   }
 
