@@ -18,7 +18,12 @@ build_data.py         Regenera cards.js desde el CSV
 
 ## Cómo se juega
 
-- Al empezar se eligen el número de equipos (1–8), sus nombres y las monedas iniciales.
+- Al empezar se eligen el modo, el número de equipos (1–8), sus nombres y las monedas iniciales.
+- **Línea temporal** (por defecto, como Hitster): cada equipo empieza con una carta revelada.
+  En su turno toca el hueco de su línea donde cree que va la canción y pulsa **Comprobar**
+  (o doble toque). Si el año encaja (año igual vale a cualquier lado) se queda la carta;
+  si no, se descarta. Gana el primero que llega a las cartas objetivo (10 por defecto).
+- **Libre**: solo turnos y monedas; la línea temporal se juega fuera de la web.
 - Arriba se muestra el equipo en turno y las monedas de cada equipo.
 - Doble toque / doble clic en la carta, botón **Revelar** o `Espacio`: girar la carta.
 - **Siguiente** o `→`: siguiente carta y turno del siguiente equipo.
