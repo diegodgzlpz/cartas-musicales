@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121212">
+<title>Cartas Musicales</title>
+<style>
+  :root {
+    --bg: #121212;
+    --ink: #f2f2f2;
+    --muted: #9a9a9a;
+    --line: rgba(255, 255, 255, 0.12);
+    --btn: rgba(255, 255, 255, 0.07);
+    --btn-hover: rgba(255, 255, 255, 0.13);
+    --accent: #1ed760;
+    --glow: transparent;
+    --card: min(88vw, 60vh, 560px);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; margin: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: 100dvh;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Halo del color del año cuando la carta está revelada */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(60% 50% at 50% 48%, var(--glow), transparent 70%);
+    opacity: 0;
+    transition: opacity 600ms ease, background 600ms ease;
+    pointer-events: none;
+  }
+  body.revealed::before { opacity: 0.45; }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: max(14px, env(safe-area-inset-top)) 16px 0;
+    position: relative;
+  }
+
+  .brand { font-weight: 700; letter-spacing: 0.02em; font-size: 15px; }
+  .brand span { color: var(--muted); font-weight: 400; }
+
+  .counter { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; }
+  .counter b { color: var(--ink); }
+
+  main {
+    display: grid;
+    place-items: center;
+    padding: 12px 16px;
+    position: relative;
+  }
+
+  .stage {
+    width: var(--card);
+    height: var(--card);
+    perspective: 1600px;
+    position: relative;
+  }
+
+  .card {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transition: transform 700ms cubic-bezier(0.3, 0.7, 0.2, 1);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .card.no-anim { transition: none; }
+
+  .face {
+    position: absolute;
+    inset: 0;
+    border-radius: 4.6%;
+    overflow: hidden;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+  .face svg { display: block; width: 100%; height: 100%; }
+  .face.info { transform: rotateY(180deg); }
+
+  /* Entrada / salida de cartas */
+  .stage.leaving .card-wrap { animation: leave 380ms cubic-bezier(0.5, 0, 0.75, 0) forwards; }
+  .stage.entering .card-wrap { animation: enter 480ms cubic-bezier(0.2, 0.8, 0.3, 1); }
+  .card-wrap { position: absolute; inset: 0; }
+
+  @keyframes leave {
+    to { transform: translateX(-130%) rotate(-12deg); opacity: 0; }
+  }
+  @keyframes enter {
+    from { transform: translateY(40px) scale(0.92); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+
+  .finished {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    border-radius: 4.6%;
+    border: 1px dashed var(--line);
+    padding: 24px;
+  }
+  .finished h2 { margin: 0; font-size: 22px; }
+  .finished p { margin: 0 0 8px; color: var(--muted); }
+  .stage.done .card-wrap { display: none; }
+  .stage.done .finished { display: flex; }
+
+  footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px max(18px, env(safe-area-inset-bottom));
+    position: relative;
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    width: min(100%, 560px);
+  }
+
+  button {
+    font: inherit;
+    color: var(--ink);
+    background: var(--btn);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 13px 18px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 150ms ease, transform 100ms ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  button:hover { background: var(--btn-hover); }
+  button:active { transform: scale(0.97); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button svg { width: 18px; height: 18px; flex: none; }
+
+  .controls .primary {
+    flex: 1;
+    background: var(--accent);
+    color: #0b0b0b;
+    border-color: transparent;
+    font-weight: 700;
+  }
+  .controls .primary:hover { background: #3be477; }
+  .controls .grow { flex: 1; }
+
+  .icon-btn { padding: 13px; }
+
+  .hint { color: var(--muted); font-size: 13px; margin: 0; text-align: center; }
+  kbd {
+    font: inherit;
+    font-size: 12px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 1px 6px;
+  }
+
+  @media (max-width: 480px) {
+    .controls .label-long { display: none; }
+    .hint .keys { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: transform 1ms; }
+    .stage.leaving .card-wrap { animation: fade-out 200ms forwards; }
+    .stage.entering .card-wrap { animation: fade-in 200ms; }
+    @keyframes fade-out { to { opacity: 0; } }
+    @keyframes fade-in { from { opacity: 0; } }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">Cartas Musicales <span id="deckCode"></span></div>
+    <div class="counter" id="counter"></div>
+  </header>
+
+  <main>
+    <div class="stage" id="stage">
+      <div class="card-wrap">
+        <div class="card" id="card" role="button" tabindex="0" aria-label="Carta. Doble toque para darle la vuelta">
+          <div class="face qr" id="faceQr"></div>
+          <div class="face info" id="faceInfo"></div>
+        </div>
+      </div>
+      <div class="finished">
+        <h2>Mazo terminado</h2>
+        <p>Has jugado todas las cartas.</p>
+        <button id="restartBtn">Barajar de nuevo</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="controls">
+      <button class="icon-btn" id="shuffleBtn" title="Barajar de nuevo" aria-label="Barajar de nuevo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
+      </button>
+      <button class="grow" id="flipBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+        <span id="flipLabel">Revelar</span>
+      </button>
+      <button class="primary" id="nextBtn">
+        <span>Siguiente<span class="label-long"> carta</span></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+      </button>
+      <button class="icon-btn" id="fullscreenBtn" title="Pantalla completa" aria-label="Pantalla completa">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5"/><path d="M16 3h5v5"/><path d="M8 21H3v-5"/><path d="M16 21h5v-5"/></svg>
+      </button>
+    </div>
+    <p class="hint">Escanea el QR · doble toque en la carta para darle la vuelta<span class="keys"> · <kbd>Espacio</kbd> girar · <kbd>→</kbd> siguiente</span></p>
+  </footer>
+
+<script src="vendor/qrcode.min.js"></script>
+<script src="cards.js"></script>
+<script>
+(() => {
+  "use strict";
+
+  // ---- Constantes de diseño (mismas medidas que generate_music_cards.py, en mm) ----
+  const DECK_CODE = "SP20";
+  const PAGE = 71;          // tarjeta con sangrado
+  const BLEED = 3;
+  const TRIM = 65;
+  const PT = 25.4 / 72;     // 1 pt en mm
+  const RING_COLORS = ["#EA1E63", "#2196F3", "#F7D51D", "#F04A23", "#8E24AA"];
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const STORAGE_KEY = "music-cards.deck.v1";
+  const DOUBLE_TAP_MS = 320;
+
+  const { fields, rows } = window.CARD_DATA;
+  const cards = rows.map((r) => Object.fromEntries(fields.map((f, i) => [f, r[i]])));
+
+  const $ = (id) => document.getElementById(id);
+  const stage = $("stage");
+  const cardEl = $("card");
+  const faceQr = $("faceQr");
+  const faceInfo = $("faceInfo");
+  const counter = $("counter");
+  const flipLabel = $("flipLabel");
+
+  $("deckCode").textContent = `· ${DECK_CODE}`;
+
+  // ---- Mazo: orden barajado persistente ----
+  let deck = loadDeck();
+  let flipped = false;
+  let busy = false;
+
+  function shuffled(n) {
+    const a = Array.from({ length: n }, (_, i) => i);
+    for (let i = n - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function loadDeck() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (saved && Array.isArray(saved.order) && saved.order.length === cards.length && saved.pos >= 0) {
+        return saved;
+      }
+    } catch (_) { /* almacenamiento no disponible */ }
+    return { order: shuffled(cards.length), pos: 0 };
+  }
+
+  function saveDeck() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(deck)); } catch (_) { /* ignorar */ }
+  }
+
+  // ---- Helpers SVG ----
+  function el(tag, attrs = {}, parent) {
+    const node = document.createElementNS(SVG_NS, tag);
+    for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+    if (parent) parent.appendChild(node);
+    return node;
+  }
+
+  function newSvg() {
+    // viewBox recortado al tamaño final (sin sangrado)
+    return el("svg", { viewBox: `${BLEED} ${BLEED} ${TRIM} ${TRIM}`, "font-family": "Arial, Helvetica, sans-serif" });
+  }
+
+  function arcPath(cx, cy, r, startDeg, extentDeg) {
+    // Ángulos como reportlab: grados en sentido antihorario desde el eje X
+    const a0 = (startDeg * Math.PI) / 180;
+    const a1 = ((startDeg + extentDeg) * Math.PI) / 180;
+    const x0 = cx + r * Math.cos(a0), y0 = cy - r * Math.sin(a0);
+    const x1 = cx + r * Math.cos(a1), y1 = cy - r * Math.sin(a1);
+    const large = extentDeg > 180 ? 1 : 0;
+    return `M${x0.toFixed(3)} ${y0.toFixed(3)}A${r} ${r} 0 ${large} 0 ${x1.toFixed(3)} ${y1.toFixed(3)}`;
+  }
+
+  function footerLabels(svg, color, id) {
+    const y = PAGE - BLEED - 3.3;
+    el("text", { x: BLEED + 2.2, y, "font-size": 5.5 * PT, fill: color }, svg).textContent = DECK_CODE;
+    el("text", { x: PAGE - BLEED - 2.2, y, "font-size": 5.5 * PT, fill: color, "text-anchor": "end" }, svg).textContent = id;
+  }
+
+  // ---- Cara QR ----
+  function renderQrFace(card) {
+    const svg = newSvg();
+    el("rect", { x: 0, y: 0, width: PAGE, height: PAGE, fill: "#1D1D1D" }, svg);
+
+    const cx = PAGE / 2;
+    const cy = PAGE / 2 - 1.5;
+    const rings = el("g", { fill: "none", "stroke-width": 1.3 * PT, "stroke-linecap": "round" }, svg);
+    [16, 20, 24, 28, 32].forEach((r, i) => {
+      const arcs = [
+        [18 + i * 17, 110, RING_COLORS[i % 5]],
+        [163 + i * 13, 82, RING_COLORS[(i + 1) % 5]],
+        [275 + i * 11, 52, RING_COLORS[(i + 2) % 5]],
+      ];
+      for (const [start, ext, color] of arcs) el("path", { d: arcPath(cx, cy, r, start, ext), stroke: color }, rings);
+    });
+
+    // QR con borde blanco de 4 módulos, 34 mm, corrección Q (igual que la versión impresa)
+    const qr = qrcode(0, "Q");
+    qr.addData(card.spotify_url);
+    qr.make();
+    const n = qr.getModuleCount();
+    const total = n + 8;
+    const size = 34;
+    const g = el("g", { transform: `translate(${cx - size / 2} ${cy - size / 2}) scale(${size / total})` }, svg);
+    el("rect", { width: total, height: total, fill: "#fff" }, g);
+    let d = "";
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${c + 4} ${r + 4}h1v1h-1z`;
+    }
+    el("path", { d, fill: "#000", "shape-rendering": "crispEdges" }, g);
+
+    footerLabels(svg, "#FFFFFF", card.id);
+    return svg;
+  }
+
+  // ---- Cara información ----
+  function renderInfoFace(card) {
+    const svg = newSvg();
+    const ink = card.text_color || "#FFFFFF";
+    el("rect", { x: 0, y: 0, width: PAGE, height: PAGE, fill: card.bg_hex }, svg);
+
+    const cx = PAGE / 2;
+    const text = (y, size, value, extra = {}) => {
+      const t = el("text", { x: cx, y, "font-size": size * PT, fill: ink, "text-anchor": "middle", ...extra }, svg);
+      t.textContent = value;
+      return t;
+    };
+
+    const artist = text(BLEED + 10, 12.5, card.artist);
+    artist.dataset.min = 7;
+    artist.dataset.truncate = "1";
+    const year = text(PAGE / 2 + 2, 38, card.year, { "font-weight": 700 });
+    year.dataset.min = 20;
+    if (card.month) {
+      const month = text(PAGE / 2 + 11.5, 10.5, card.month.toLowerCase());
+      month.dataset.min = 6;
+    }
+    const title = text(PAGE - BLEED - 11, 14, card.title, { "font-style": "italic" });
+    title.dataset.min = 7;
+    title.dataset.truncate = "1";
+
+    footerLabels(svg, "#000000", card.id);
+    return svg;
+  }
+
+  // Reduce el tamaño de los textos largos hasta que quepan (como fit_text/truncate_text)
+  function fitTexts(svg) {
+    const maxWidth = TRIM - 10;
+    for (const t of svg.querySelectorAll("text[data-min]")) {
+      let size = parseFloat(t.getAttribute("font-size"));
+      const min = parseFloat(t.dataset.min) * PT;
+      while (size > min && t.getComputedTextLength() > maxWidth) {
+        size -= 0.4 * PT;
+        t.setAttribute("font-size", size);
+      }
+      if (t.dataset.truncate && t.getComputedTextLength() > maxWidth) {
+        let s = t.textContent;
+        while (s && t.getComputedTextLength() > maxWidth) {
+          s = s.slice(0, -1);
+          t.textContent = s.trimEnd() + "…";
+        }
+      }
+    }
+  }
+
+  // ---- Estado y UI ----
+  function currentCard() {
+    return deck.pos < deck.order.length ? cards[deck.order[deck.pos]] : null;
+  }
+
+  function setFlipped(value, animate = true) {
+    flipped = value;
+    cardEl.classList.toggle("no-anim", !animate);
+    cardEl.classList.toggle("flipped", flipped);
+    document.body.classList.toggle("revealed", flipped);
+    flipLabel.textContent = flipped ? "Ver QR" : "Revelar";
+    if (!animate) void cardEl.offsetWidth; // aplica sin transición
+    cardEl.classList.remove("no-anim");
+  }
+
+  function render() {
+    const card = currentCard();
+    stage.classList.toggle("done", !card);
+    counter.innerHTML = `Carta <b>${Math.min(deck.pos + 1, deck.order.length)}</b> / ${deck.order.length}`;
+    $("flipBtn").disabled = !card;
+    $("nextBtn").disabled = !card;
+    if (!card) return;
+
+    faceQr.replaceChildren(renderQrFace(card));
+    const info = renderInfoFace(card);
+    faceInfo.replaceChildren(info);
+    fitTexts(info);
+    document.documentElement.style.setProperty("--glow", card.bg_hex);
+  }
+
+  function flip() {
+    if (busy || !currentCard()) return;
+    setFlipped(!flipped);
+  }
+
+  function next() {
+    if (busy || !currentCard()) return;
+    busy = true;
+    stage.classList.add("leaving");
+    const finish = () => {
+      stage.classList.remove("leaving");
+      deck.pos += 1;
+      saveDeck();
+      setFlipped(false, false);
+      render();
+      stage.classList.add("entering");
+      setTimeout(() => { stage.classList.remove("entering"); busy = false; }, 500);
+    };
+    setTimeout(finish, matchMedia("(prefers-reduced-motion: reduce)").matches ? 200 : 380);
+  }
+
+  function reshuffle() {
+    if (busy) return;
+    if (deck.pos > 0 && currentCard() && !confirm("¿Barajar de nuevo y empezar desde la primera carta?")) return;
+    deck = { order: shuffled(cards.length), pos: 0 };
+    saveDeck();
+    setFlipped(false, false);
+    render();
+  }
+
+  // Doble toque / doble clic propio (dblclick no es fiable en móviles)
+  let lastTap = { t: 0, x: 0, y: 0 };
+  cardEl.addEventListener("pointerup", (e) => {
+    const now = performance.now();
+    const close = Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 40;
+    if (now - lastTap.t < DOUBLE_TAP_MS && close) {
+      lastTap.t = 0;
+      flip();
+    } else {
+      lastTap = { t: now, x: e.clientX, y: e.clientY };
+    }
+  });
+  cardEl.addEventListener("dblclick", (e) => e.preventDefault());
+
+  $("flipBtn").addEventListener("click", flip);
+  $("nextBtn").addEventListener("click", next);
+  $("shuffleBtn").addEventListener("click", reshuffle);
+  $("restartBtn").addEventListener("click", reshuffle);
+  $("fullscreenBtn").addEventListener("click", () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen?.().catch(() => {});
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.target.tagName === "BUTTON" && (e.key === " " || e.key === "Enter")) return;
+    if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
+    else if (e.key === "ArrowRight" || e.key.toLowerCase() === "n") { e.preventDefault(); next(); }
+  });
+
+  // Mantener la pantalla encendida durante la partida
+  let wakeLock = null;
+  async function keepAwake() {
+    try { if (!wakeLock && navigator.wakeLock) wakeLock = await navigator.wakeLock.request("screen"); } catch (_) {}
+    wakeLock?.addEventListener?.("release", () => { wakeLock = null; });
+  }
+  document.addEventListener("pointerdown", keepAwake, { once: true });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") keepAwake(); });
+
+  render();
+})();
+</script>
+</body>
+</html>
