@@ -8,14 +8,17 @@
 <style>
   :root {
     --bg: #121212;
+    --panel: #1b1b1b;
     --ink: #f2f2f2;
     --muted: #9a9a9a;
     --line: rgba(255, 255, 255, 0.12);
     --btn: rgba(255, 255, 255, 0.07);
     --btn-hover: rgba(255, 255, 255, 0.13);
     --accent: #1ed760;
+    --coin: #f7c948;
     --glow: transparent;
-    --card: min(88vw, 60vh, 560px);
+    --team: #1ed760;
+    --card: max(220px, min(88vw, calc(100dvh - 330px), 560px));
   }
 
   * { box-sizing: border-box; }
@@ -27,7 +30,7 @@
     color: var(--ink);
     font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto auto 1fr auto;
     min-height: 100dvh;
     overflow: hidden;
     -webkit-user-select: none;
@@ -40,7 +43,7 @@
     content: "";
     position: fixed;
     inset: 0;
-    background: radial-gradient(60% 50% at 50% 48%, var(--glow), transparent 70%);
+    background: radial-gradient(60% 50% at 50% 55%, var(--glow), transparent 70%);
     opacity: 0;
     transition: opacity 600ms ease, background 600ms ease;
     pointer-events: none;
@@ -51,21 +54,112 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: max(14px, env(safe-area-inset-top)) 16px 0;
+    gap: 12px;
+    padding: max(10px, env(safe-area-inset-top)) 16px 0;
     position: relative;
   }
 
-  .brand { font-weight: 700; letter-spacing: 0.02em; font-size: 15px; }
+  .brand { font-weight: 700; letter-spacing: 0.02em; font-size: 15px; white-space: nowrap; }
   .brand span { color: var(--muted); font-weight: 400; }
 
-  .counter { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; }
+  .header-right { display: flex; align-items: center; gap: 6px; }
+  .counter { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; margin-right: 6px; white-space: nowrap; }
   .counter b { color: var(--ink); }
 
+  button {
+    font: inherit;
+    color: var(--ink);
+    background: var(--btn);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 13px 18px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 150ms ease, transform 100ms ease, opacity 150ms ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  button:hover { background: var(--btn-hover); }
+  button:active { transform: scale(0.97); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button:disabled { opacity: 0.35; cursor: default; transform: none; }
+  button svg { width: 18px; height: 18px; flex: none; }
+
+  .icon-btn { padding: 9px; background: transparent; border-color: transparent; color: var(--muted); }
+  .icon-btn:hover { color: var(--ink); }
+
+  /* ---- Turno ---- */
+  .turn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px 0;
+    position: relative;
+  }
+
+  .turn-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: clamp(20px, 3.4vh, 28px);
+    font-weight: 700;
+    min-height: 1.3em;
+  }
+  .turn-title small { font-size: 0.6em; font-weight: 400; color: var(--muted); }
+  .turn-title .dot { width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--team); box-shadow: 0 0 0 4px color-mix(in srgb, var(--team) 25%, transparent); }
+  .turn-title.pop { animation: pop 450ms cubic-bezier(0.2, 0.9, 0.3, 1.3); }
+  @keyframes pop { from { transform: scale(0.8); opacity: 0; } }
+
+  .teams {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    max-width: 640px;
+    cursor: pointer;
+    padding: 0;
+    border: 0;
+    background: none;
+    border-radius: 12px;
+  }
+  .teams:hover { background: none; }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px 5px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--muted);
+    transition: background 250ms ease, color 250ms ease, border-color 250ms ease;
+  }
+  .chip .swatch { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .chip.active { color: var(--ink); border-color: var(--team); background: color-mix(in srgb, var(--team) 18%, transparent); }
+  .coins { display: inline-flex; align-items: center; gap: 3px; font-variant-numeric: tabular-nums; color: var(--coin); font-weight: 700; }
+  .coin-icon { width: 13px; height: 13px; flex: none; }
+
+  .skip-note {
+    font-size: 13px;
+    color: var(--coin);
+    min-height: 16px;
+    margin: -2px 0 0;
+    opacity: 0;
+    transition: opacity 200ms ease;
+  }
+  .skip-note.show { opacity: 1; }
+
+  /* ---- Carta ---- */
   main {
     display: grid;
     place-items: center;
-    padding: 12px 16px;
+    padding: 8px 16px;
     position: relative;
+    min-height: 0;
   }
 
   .stage {
@@ -98,13 +192,35 @@
   .face svg { display: block; width: 100%; height: 100%; }
   .face.info { transform: rotateY(180deg); }
 
+  /* Sello "SALTADA" sobre la cara de información */
+  .stamp {
+    position: absolute;
+    top: 62%;
+    right: 3%;
+    transform: rotate(-10deg);
+    padding: 4px 14px;
+    border: 3px solid var(--coin);
+    border-radius: 8px;
+    color: var(--coin);
+    background: rgba(0, 0, 0, 0.55);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    font-size: calc(var(--card) * 0.045);
+    display: none;
+  }
+  .card.skipped .stamp { display: block; }
+
   /* Entrada / salida de cartas */
   .stage.leaving .card-wrap { animation: leave 380ms cubic-bezier(0.5, 0, 0.75, 0) forwards; }
+  .stage.leaving.keep .card-wrap { animation-name: discard; }
   .stage.entering .card-wrap { animation: enter 480ms cubic-bezier(0.2, 0.8, 0.3, 1); }
   .card-wrap { position: absolute; inset: 0; }
 
   @keyframes leave {
     to { transform: translateX(-130%) rotate(-12deg); opacity: 0; }
+  }
+  @keyframes discard {
+    to { transform: translateY(70%) scale(0.85) rotate(6deg); opacity: 0; }
   }
   @keyframes enter {
     from { transform: translateY(40px) scale(0.92); opacity: 0; }
@@ -129,53 +245,34 @@
   .stage.done .card-wrap { display: none; }
   .stage.done .finished { display: flex; }
 
+  /* ---- Controles ---- */
   footer {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    padding: 0 16px max(18px, env(safe-area-inset-bottom));
+    padding: 0 16px max(16px, env(safe-area-inset-bottom));
     position: relative;
   }
 
   .controls {
-    display: flex;
-    gap: 10px;
-    width: min(100%, 560px);
-  }
-
-  button {
-    font: inherit;
-    color: var(--ink);
-    background: var(--btn);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 13px 18px;
-    font-size: 15px;
-    cursor: pointer;
-    transition: background 150ms ease, transform 100ms ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.25fr;
     gap: 8px;
-    white-space: nowrap;
+    width: min(100%, 600px);
   }
-  button:hover { background: var(--btn-hover); }
-  button:active { transform: scale(0.97); }
-  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  button svg { width: 18px; height: 18px; flex: none; }
+  .controls button { padding: 13px 10px; }
 
   .controls .primary {
-    flex: 1;
     background: var(--accent);
     color: #0b0b0b;
     border-color: transparent;
     font-weight: 700;
   }
   .controls .primary:hover { background: #3be477; }
-  .controls .grow { flex: 1; }
+  .controls .primary.keep { background: var(--coin); }
 
-  .icon-btn { padding: 13px; }
+  .skip-btn .coins { color: var(--coin); }
 
   .hint { color: var(--muted); font-size: 13px; margin: 0; text-align: center; }
   kbd {
@@ -186,32 +283,124 @@
     padding: 1px 6px;
   }
 
+  /* ---- Diálogos ---- */
+  dialog {
+    width: min(92vw, 440px);
+    max-height: 88dvh;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--panel);
+    color: var(--ink);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  dialog::backdrop { background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px); }
+  dialog[open] { animation: dialog-in 260ms cubic-bezier(0.2, 0.8, 0.3, 1); }
+  @keyframes dialog-in { from { transform: translateY(16px) scale(0.97); opacity: 0; } }
+
+  .dlg { display: flex; flex-direction: column; gap: 18px; padding: 22px; }
+  .dlg h2 { margin: 0; font-size: 20px; }
+  .dlg p.sub { margin: -10px 0 0; color: var(--muted); font-size: 14px; }
+
+  .field { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .field label { font-size: 15px; }
+
+  .stepper { display: inline-flex; align-items: center; gap: 4px; }
+  .stepper button { width: 38px; height: 38px; padding: 0; font-size: 20px; line-height: 1; }
+  .stepper output { min-width: 32px; text-align: center; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .names { display: flex; flex-direction: column; gap: 8px; max-height: 40dvh; overflow-y: auto; }
+  .name-row { display: flex; align-items: center; gap: 10px; }
+  .name-row .swatch { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+  .name-row input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-size: 16px;
+    color: var(--ink);
+    background: var(--btn);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .name-row input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+
+  .check { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+  .check input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+  .score-rows { display: flex; flex-direction: column; gap: 6px; max-height: 50dvh; overflow-y: auto; }
+  .score-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 8px 8px 12px;
+    border-radius: 12px;
+    background: var(--btn);
+  }
+  .score-row.active { outline: 1px solid var(--team); }
+  .score-row .who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .score-row .who span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .score-row .swatch { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+  .score-row .stepper output { color: var(--coin); }
+
+  .dlg-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+  .dlg-actions .primary { background: var(--accent); color: #0b0b0b; border-color: transparent; font-weight: 700; }
+  .dlg-actions .primary:hover { background: #3be477; }
+
   @media (max-width: 480px) {
-    .controls .label-long { display: none; }
+    .label-long { display: none; }
     .hint .keys { display: none; }
+    .counter { font-size: 13px; margin-right: 0; }
+    .brand span { display: none; }
+    .controls button { font-size: 14px; gap: 6px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .card { transition: transform 1ms; }
-    .stage.leaving .card-wrap { animation: fade-out 200ms forwards; }
+    .stage.leaving .card-wrap, .stage.leaving.keep .card-wrap { animation: fade-out 200ms forwards; }
     .stage.entering .card-wrap { animation: fade-in 200ms; }
+    .turn-title.pop { animation: none; }
     @keyframes fade-out { to { opacity: 0; } }
     @keyframes fade-in { from { opacity: 0; } }
   }
 </style>
 </head>
 <body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="#000" stroke-opacity="0.28" stroke-width="2"/></symbol>
+  </svg>
+
   <header>
     <div class="brand">Cartas Musicales <span id="deckCode"></span></div>
-    <div class="counter" id="counter"></div>
+    <div class="header-right">
+      <div class="counter" id="counter"></div>
+      <button class="icon-btn" id="teamsBtn" title="Equipos y monedas" aria-label="Equipos y monedas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.2c2.9.3 5 2.7 5 5.8"/></svg>
+      </button>
+      <button class="icon-btn" id="shuffleBtn" title="Barajar de nuevo" aria-label="Barajar de nuevo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
+      </button>
+      <button class="icon-btn" id="fullscreenBtn" title="Pantalla completa" aria-label="Pantalla completa">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5"/><path d="M16 3h5v5"/><path d="M8 21H3v-5"/><path d="M16 21h5v-5"/></svg>
+      </button>
+    </div>
   </header>
+
+  <section class="turn" aria-live="polite">
+    <div class="turn-title" id="turnTitle"></div>
+    <button class="teams" id="teamStrip" title="Editar monedas" aria-label="Equipos y monedas"></button>
+    <p class="skip-note" id="skipNote"></p>
+  </section>
 
   <main>
     <div class="stage" id="stage">
       <div class="card-wrap">
         <div class="card" id="card" role="button" tabindex="0" aria-label="Carta. Doble toque para darle la vuelta">
           <div class="face qr" id="faceQr"></div>
-          <div class="face info" id="faceInfo"></div>
+          <div class="face info"><div id="faceInfo" style="position:absolute;inset:0"></div><div class="stamp">SALTADA</div></div>
         </div>
       </div>
       <div class="finished">
@@ -224,23 +413,64 @@
 
   <footer>
     <div class="controls">
-      <button class="icon-btn" id="shuffleBtn" title="Barajar de nuevo" aria-label="Barajar de nuevo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
-      </button>
-      <button class="grow" id="flipBtn">
+      <button id="flipBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
         <span id="flipLabel">Revelar</span>
       </button>
+      <button class="skip-btn" id="skipBtn" title="Gasta 1 moneda: revela la carta sin perder el turno">
+        <span>Saltar</span>
+        <span class="coins">−1 <svg class="coin-icon"><use href="#coin"/></svg></span>
+      </button>
       <button class="primary" id="nextBtn">
-        <span>Siguiente<span class="label-long"> carta</span></span>
+        <span id="nextLabel">Siguiente</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
       </button>
-      <button class="icon-btn" id="fullscreenBtn" title="Pantalla completa" aria-label="Pantalla completa">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5"/><path d="M16 3h5v5"/><path d="M8 21H3v-5"/><path d="M16 21h5v-5"/></svg>
-      </button>
     </div>
-    <p class="hint">Escanea el QR · doble toque en la carta para darle la vuelta<span class="keys"> · <kbd>Espacio</kbd> girar · <kbd>→</kbd> siguiente</span></p>
+    <p class="hint">Doble toque en la carta para darle la vuelta<span class="keys"> · <kbd>Espacio</kbd> girar · <kbd>S</kbd> saltar · <kbd>→</kbd> siguiente</span></p>
   </footer>
+
+  <!-- Configuración de la partida -->
+  <dialog id="setupDlg">
+    <form method="dialog" class="dlg" id="setupForm">
+      <h2>Nueva partida</h2>
+      <p class="sub">Elige los equipos. El turno pasa al siguiente equipo con cada carta.</p>
+      <div class="field">
+        <label>Número de equipos</label>
+        <div class="stepper">
+          <button type="button" data-step="teams" data-delta="-1" aria-label="Menos equipos">−</button>
+          <output id="teamCount">2</output>
+          <button type="button" data-step="teams" data-delta="1" aria-label="Más equipos">+</button>
+        </div>
+      </div>
+      <div class="names" id="nameInputs"></div>
+      <div class="field">
+        <label>Monedas iniciales</label>
+        <div class="stepper">
+          <button type="button" data-step="coins" data-delta="-1" aria-label="Menos monedas">−</button>
+          <output id="startCoins">2</output>
+          <button type="button" data-step="coins" data-delta="1" aria-label="Más monedas">+</button>
+        </div>
+      </div>
+      <label class="check"><input type="checkbox" id="reshuffleChk"> Barajar el mazo (si no, sigue sin repetir canciones)</label>
+      <div class="dlg-actions">
+        <button type="button" id="setupCancel">Cancelar</button>
+        <button type="submit" class="primary">Empezar partida</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Marcador de monedas -->
+  <dialog id="scoreDlg">
+    <form method="dialog" class="dlg">
+      <h2>Monedas</h2>
+      <p class="sub">Suma monedas al acertar artista y título, o réstalas en un desafío.</p>
+      <div class="score-rows" id="scoreRows"></div>
+      <div class="dlg-actions">
+        <button type="button" id="newGameBtn">Nueva partida</button>
+        <button type="submit" class="primary">Listo</button>
+      </div>
+    </form>
+  </dialog>
 
 <script src="vendor/qrcode.min.js"></script>
 <script src="cards.js"></script>
@@ -257,7 +487,13 @@
   const RING_COLORS = ["#EA1E63", "#2196F3", "#F7D51D", "#F04A23", "#8E24AA"];
   const SVG_NS = "http://www.w3.org/2000/svg";
   const STORAGE_KEY = "music-cards.deck.v1";
+  const GAME_KEY = "music-cards.game.v1";
   const DOUBLE_TAP_MS = 320;
+
+  // ---- Constantes de partida ----
+  const TEAM_COLORS = ["#EA1E63", "#2196F3", "#F7D51D", "#1ED760", "#F04A23", "#B455D6", "#00BCD4", "#FF9800"];
+  const MAX_TEAMS = TEAM_COLORS.length;
+  const MAX_START_COINS = 5;
 
   const { fields, rows } = window.CARD_DATA;
   const cards = rows.map((r) => Object.fromEntries(fields.map((f, i) => [f, r[i]])));
@@ -271,6 +507,14 @@
   const flipLabel = $("flipLabel");
 
   $("deckCode").textContent = `· ${DECK_CODE}`;
+
+  // ---- Persistencia ----
+  function load(key) {
+    try { return JSON.parse(localStorage.getItem(key)); } catch (_) { return null; }
+  }
+  function save(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) { /* almacenamiento no disponible */ }
+  }
 
   // ---- Mazo: orden barajado persistente ----
   let deck = loadDeck();
@@ -287,17 +531,84 @@
   }
 
   function loadDeck() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if (saved && Array.isArray(saved.order) && saved.order.length === cards.length && saved.pos >= 0) {
-        return saved;
-      }
-    } catch (_) { /* almacenamiento no disponible */ }
+    const saved = load(STORAGE_KEY);
+    if (saved && Array.isArray(saved.order) && saved.order.length === cards.length && saved.pos >= 0) return saved;
     return { order: shuffled(cards.length), pos: 0 };
   }
 
-  function saveDeck() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(deck)); } catch (_) { /* ignorar */ }
+  const saveDeck = () => save(STORAGE_KEY, deck);
+
+  // ---- Partida: equipos, turno y monedas ----
+  // game = { teams: [{ name, coins }], turn, skipped, startCoins }
+  let game = loadGame();
+
+  function loadGame() {
+    const g = load(GAME_KEY);
+    if (g && Array.isArray(g.teams) && g.teams.length >= 1 && g.teams.length <= MAX_TEAMS) {
+      g.turn = Math.min(Math.max(0, g.turn | 0), g.teams.length - 1);
+      return g;
+    }
+    return null;
+  }
+
+  const saveGame = () => save(GAME_KEY, game);
+  const teamColor = (i) => TEAM_COLORS[i % TEAM_COLORS.length];
+  const defaultName = (i) => `Equipo ${i + 1}`;
+
+  function coinBadge(n) {
+    return `<span class="coins">${n} <svg class="coin-icon"><use href="#coin"/></svg></span>`;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  }
+
+  function renderTurn(animate = false) {
+    if (!game) return;
+    const team = game.teams[game.turn];
+    document.documentElement.style.setProperty("--team", teamColor(game.turn));
+
+    const title = $("turnTitle");
+    title.innerHTML = game.teams.length > 1
+      ? `<span class="dot"></span><small>Turno de</small> ${escapeHtml(team.name)}`
+      : `<span class="dot"></span>${escapeHtml(team.name)}`;
+    if (animate) {
+      title.classList.remove("pop");
+      void title.offsetWidth;
+      title.classList.add("pop");
+    }
+
+    $("teamStrip").innerHTML = game.teams.map((t, i) => `
+      <span class="chip${i === game.turn ? " active" : ""}">
+        <span class="swatch" style="background:${teamColor(i)}"></span>
+        ${escapeHtml(t.name)} ${coinBadge(t.coins)}
+      </span>`).join("");
+
+    const note = $("skipNote");
+    note.textContent = game.skipped ? `Canción saltada · sigue ${team.name}` : "";
+    note.classList.toggle("show", game.skipped);
+
+    cardEl.classList.toggle("skipped", game.skipped);
+    renderControls();
+  }
+
+  function renderControls() {
+    const card = currentCard();
+    const team = game && game.teams[game.turn];
+    $("flipBtn").disabled = !card;
+    $("nextBtn").disabled = !card;
+    $("skipBtn").disabled = !card || !team || flipped || game.skipped || team.coins < 1;
+
+    const keep = game && game.skipped;
+    $("nextBtn").classList.toggle("keep", !!keep);
+    if (keep) {
+      $("nextLabel").innerHTML = `Otra carta<span class="label-long"> · mismo equipo</span>`;
+    } else if (game && game.teams.length > 1) {
+      const nextTeam = game.teams[(game.turn + 1) % game.teams.length];
+      $("nextLabel").innerHTML = `Siguiente<span class="label-long"> · ${escapeHtml(nextTeam.name)}</span>`;
+    } else {
+      $("nextLabel").textContent = "Siguiente";
+    }
   }
 
   // ---- Helpers SVG ----
@@ -428,15 +739,15 @@
     flipLabel.textContent = flipped ? "Ver QR" : "Revelar";
     if (!animate) void cardEl.offsetWidth; // aplica sin transición
     cardEl.classList.remove("no-anim");
+    renderControls();
   }
 
   function render() {
     const card = currentCard();
     stage.classList.toggle("done", !card);
     counter.innerHTML = `Carta <b>${Math.min(deck.pos + 1, deck.order.length)}</b> / ${deck.order.length}`;
-    $("flipBtn").disabled = !card;
-    $("nextBtn").disabled = !card;
-    if (!card) return;
+    renderTurn();
+    if (!card) { renderControls(); return; }
 
     faceQr.replaceChildren(renderQrFace(card));
     const info = renderInfoFace(card);
@@ -450,16 +761,36 @@
     setFlipped(!flipped);
   }
 
+  // Saltar: gasta 1 moneda del equipo en turno, revela la carta y mantiene el turno
+  function skip() {
+    if (busy || !currentCard() || !game || flipped || game.skipped) return;
+    const team = game.teams[game.turn];
+    if (team.coins < 1) return;
+    team.coins -= 1;
+    game.skipped = true;
+    saveGame();
+    renderTurn();
+    setFlipped(true);
+  }
+
   function next() {
     if (busy || !currentCard()) return;
     busy = true;
+    const keepTurn = game && game.skipped;
+    stage.classList.toggle("keep", !!keepTurn);
     stage.classList.add("leaving");
     const finish = () => {
-      stage.classList.remove("leaving");
+      stage.classList.remove("leaving", "keep");
       deck.pos += 1;
       saveDeck();
+      if (game) {
+        if (!keepTurn) game.turn = (game.turn + 1) % game.teams.length;
+        game.skipped = false;
+        saveGame();
+      }
       setFlipped(false, false);
       render();
+      if (!keepTurn) renderTurn(true);
       stage.classList.add("entering");
       setTimeout(() => { stage.classList.remove("entering"); busy = false; }, 500);
     };
@@ -471,10 +802,114 @@
     if (deck.pos > 0 && currentCard() && !confirm("¿Barajar de nuevo y empezar desde la primera carta?")) return;
     deck = { order: shuffled(cards.length), pos: 0 };
     saveDeck();
+    if (game) { game.skipped = false; saveGame(); }
     setFlipped(false, false);
     render();
   }
 
+  // ---- Diálogo: nueva partida ----
+  const setupDlg = $("setupDlg");
+  let draft = { names: [], coins: 2 };
+
+  function openSetup() {
+    const teams = game ? game.teams : [];
+    draft = {
+      names: teams.length ? teams.map((t) => t.name) : [defaultName(0), defaultName(1)],
+      coins: game ? game.startCoins ?? 2 : 2,
+    };
+    $("reshuffleChk").checked = false;
+    $("setupCancel").hidden = !game;
+    renderSetup();
+    scoreDlg.close();
+    setupDlg.showModal();
+  }
+
+  function renderSetup() {
+    $("teamCount").textContent = draft.names.length;
+    $("startCoins").textContent = draft.coins;
+    const box = $("nameInputs");
+    box.innerHTML = draft.names.map((n, i) => `
+      <div class="name-row">
+        <span class="swatch" style="background:${teamColor(i)}"></span>
+        <input type="text" maxlength="24" data-i="${i}" value="${escapeHtml(n)}" placeholder="${defaultName(i)}" aria-label="Nombre del equipo ${i + 1}">
+      </div>`).join("");
+    setupDlg.querySelectorAll("[data-step]").forEach((b) => {
+      const delta = +b.dataset.delta;
+      if (b.dataset.step === "teams") b.disabled = delta < 0 ? draft.names.length <= 1 : draft.names.length >= MAX_TEAMS;
+      else b.disabled = delta < 0 ? draft.coins <= 0 : draft.coins >= MAX_START_COINS;
+    });
+  }
+
+  $("nameInputs").addEventListener("input", (e) => {
+    if (e.target.dataset.i != null) draft.names[+e.target.dataset.i] = e.target.value;
+  });
+
+  setupDlg.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-step]");
+    if (!b) return;
+    const delta = +b.dataset.delta;
+    if (b.dataset.step === "teams") {
+      if (delta > 0 && draft.names.length < MAX_TEAMS) draft.names.push(defaultName(draft.names.length));
+      if (delta < 0 && draft.names.length > 1) draft.names.pop();
+    } else {
+      draft.coins = Math.min(MAX_START_COINS, Math.max(0, draft.coins + delta));
+    }
+    renderSetup();
+  });
+
+  $("setupCancel").addEventListener("click", () => setupDlg.close());
+  setupDlg.addEventListener("cancel", (e) => { if (!game) e.preventDefault(); });
+
+  $("setupForm").addEventListener("submit", () => {
+    game = {
+      teams: draft.names.map((n, i) => ({ name: n.trim() || defaultName(i), coins: draft.coins })),
+      turn: 0,
+      skipped: false,
+      startCoins: draft.coins,
+    };
+    saveGame();
+    if ($("reshuffleChk").checked) deck = { order: shuffled(cards.length), pos: 0 };
+    else if (flipped) deck.pos = Math.min(deck.pos + 1, deck.order.length); // la carta ya vista no se reutiliza
+    saveDeck();
+    setFlipped(false, false);
+    render();
+    renderTurn(true);
+  });
+
+  // ---- Diálogo: monedas ----
+  const scoreDlg = $("scoreDlg");
+
+  function renderScores() {
+    $("scoreRows").innerHTML = game.teams.map((t, i) => `
+      <div class="score-row${i === game.turn ? " active" : ""}">
+        <div class="who"><span class="swatch" style="background:${teamColor(i)}"></span><span>${escapeHtml(t.name)}</span></div>
+        <div class="stepper">
+          <button type="button" data-team="${i}" data-delta="-1" aria-label="Quitar moneda" ${t.coins <= 0 ? "disabled" : ""}>−</button>
+          <output>${t.coins}</output>
+          <button type="button" data-team="${i}" data-delta="1" aria-label="Añadir moneda">+</button>
+        </div>
+      </div>`).join("");
+  }
+
+  function openScores() {
+    if (!game) return openSetup();
+    renderScores();
+    scoreDlg.showModal();
+  }
+
+  $("scoreRows").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-team]");
+    if (!b) return;
+    const t = game.teams[+b.dataset.team];
+    t.coins = Math.max(0, t.coins + +b.dataset.delta);
+    saveGame();
+    renderScores();
+    renderTurn();
+  });
+
+  $("newGameBtn").addEventListener("click", openSetup);
+
+  // ---- Eventos ----
   // Doble toque / doble clic propio (dblclick no es fiable en móviles)
   let lastTap = { t: 0, x: 0, y: 0 };
   cardEl.addEventListener("pointerup", (e) => {
@@ -490,30 +925,40 @@
   cardEl.addEventListener("dblclick", (e) => e.preventDefault());
 
   $("flipBtn").addEventListener("click", flip);
+  $("skipBtn").addEventListener("click", skip);
   $("nextBtn").addEventListener("click", next);
   $("shuffleBtn").addEventListener("click", reshuffle);
   $("restartBtn").addEventListener("click", reshuffle);
+  $("teamsBtn").addEventListener("click", openScores);
+  $("teamStrip").addEventListener("click", openScores);
   $("fullscreenBtn").addEventListener("click", () => {
     if (document.fullscreenElement) document.exitFullscreen();
     else document.documentElement.requestFullscreen?.().catch(() => {});
   });
 
   document.addEventListener("keydown", (e) => {
+    if (document.querySelector("dialog[open]")) return;
     if (e.target.tagName === "BUTTON" && (e.key === " " || e.key === "Enter")) return;
     if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
     else if (e.key === "ArrowRight" || e.key.toLowerCase() === "n") { e.preventDefault(); next(); }
+    else if (e.key.toLowerCase() === "s") { e.preventDefault(); skip(); }
   });
 
   // Mantener la pantalla encendida durante la partida
   let wakeLock = null;
   async function keepAwake() {
-    try { if (!wakeLock && navigator.wakeLock) wakeLock = await navigator.wakeLock.request("screen"); } catch (_) {}
-    wakeLock?.addEventListener?.("release", () => { wakeLock = null; });
+    try {
+      if (!wakeLock && navigator.wakeLock) {
+        wakeLock = await navigator.wakeLock.request("screen");
+        wakeLock.addEventListener("release", () => { wakeLock = null; });
+      }
+    } catch (_) { /* no soportado o denegado */ }
   }
   document.addEventListener("pointerdown", keepAwake, { once: true });
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") keepAwake(); });
 
   render();
+  if (!game) openSetup();
 })();
 </script>
 </body>

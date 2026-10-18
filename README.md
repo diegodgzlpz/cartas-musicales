@@ -16,11 +16,16 @@ build_data.py         Regenera cards.js desde el CSV
 .nojekyll             Evita que GitHub Pages procese el sitio con Jekyll
 ```
 
-## Controles
+## Cómo se juega
 
-- Doble toque / doble clic en la carta, botón **Revelar** o `Espacio`: girar la carta
-- Botón **Siguiente** o `→`: siguiente carta
-- El mazo se baraja sin repeticiones y el progreso se guarda en el navegador
+- Al empezar se eligen el número de equipos (1–8), sus nombres y las monedas iniciales.
+- Arriba se muestra el equipo en turno y las monedas de cada equipo.
+- Doble toque / doble clic en la carta, botón **Revelar** o `Espacio`: girar la carta.
+- **Siguiente** o `→`: siguiente carta y turno del siguiente equipo.
+- **Saltar** o `S`: el equipo en turno paga 1 moneda, la carta se revela marcada como saltada
+  y **Otra carta** saca una nueva sin pasar el turno.
+- Tocando la fila de equipos se suman o restan monedas (aciertos, desafíos) o se empieza otra partida.
+- El mazo se baraja sin repeticiones; la partida y el progreso se guardan en el navegador.
 
 ## Actualizar las cartas
 
