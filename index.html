@@ -19,10 +19,14 @@
     --glow: transparent;
     --team: #1ed760;
     --bad: #ff5c5c;
+  }
+  /* Tamaño de carta en body para que use el --tl (alto de la línea temporal) del modo activo */
+  body {
     --tl: 0px;
     --card: max(200px, min(88vw, calc(100dvh - 330px - var(--tl)), 560px));
   }
   body.timeline-mode { --tl: 92px; }
+  body.timeline-mode.multi { --tl: 128px; }
 
   * { box-sizing: border-box; }
 
@@ -34,6 +38,7 @@
     font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
     display: grid;
     grid-template-rows: auto auto 1fr auto;
+    grid-template-columns: minmax(0, 1fr); /* las barras con scroll no ensanchan la página */
     min-height: 100dvh;
     overflow: hidden;
     -webkit-user-select: none;
@@ -230,6 +235,43 @@
     font-weight: 700;
   }
   .timeline-empty { color: var(--muted); font-size: 13px; padding: 20px 0; text-align: center; width: 100%; }
+
+  /* Ficha de desafío de otro equipo colocada en un hueco */
+  .slot.token {
+    width: 34px;
+    border: 2px solid var(--tok);
+    background: color-mix(in srgb, var(--tok) 25%, transparent);
+    color: var(--coin);
+  }
+  .slot.token svg { width: 16px; height: 16px; }
+  .timeline.picking .slot:not(.selected):not(.token) { border-color: var(--pick); color: var(--ink); animation: breathe 1.2s ease-in-out infinite; }
+  @keyframes breathe { 50% { background: color-mix(in srgb, var(--pick) 25%, transparent); } }
+
+  /* ---- Barra de desafío ---- */
+  .challenge-bar {
+    display: none;
+    align-items: center;
+    justify-content: safe center;
+    gap: 6px;
+    min-height: 32px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    white-space: nowrap;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  body.timeline-mode.multi .challenge-bar { display: flex; }
+  .challenge-bar.off { visibility: hidden; }
+  .challenge-bar > span { font-weight: 700; color: var(--ink); }
+  .challenge-bar button {
+    padding: 5px 10px 5px 8px;
+    font-size: 13px;
+    gap: 6px;
+    color: var(--muted);
+  }
+  .challenge-bar button .swatch { width: 9px; height: 9px; border-radius: 50%; }
+  .challenge-bar button.picking { color: var(--ink); border-color: var(--pick); background: color-mix(in srgb, var(--pick) 22%, transparent); }
+  .challenge-bar button.placed { color: var(--ink); border-color: var(--coin); }
 
   .segmented { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--btn); border: 1px solid var(--line); }
   .segmented button { border: 0; background: transparent; padding: 8px 14px; font-size: 14px; color: var(--muted); }
@@ -502,6 +544,7 @@
 
   <footer>
     <div class="timeline-wrap">
+      <div class="challenge-bar off" id="challengeBar"></div>
       <div class="timeline" id="timeline" aria-label="Línea temporal del equipo en turno"></div>
     </div>
     <div class="controls">
@@ -667,7 +710,9 @@
   //   mode: "timeline" | "free", target, startCoins, turn, skipped,
   //   teams: [{ name, coins, timeline: [índices de carta ordenados por año] }],
   //   slot: hueco elegido en la línea temporal (o null),
-  //   result: { ok, slot, card } tras comprobar (o null),
+  //   challenges: [{ team, slot }] fichas de desafío de otros equipos en la línea del equipo en turno,
+  //   picking: equipo que está colocando su ficha de desafío (o null),
+  //   result: { ok, slot, card, thief, challengers } tras comprobar (o null),
   //   won: true cuando ya se ha anunciado un ganador
   // }
   let game = loadGame();
@@ -680,6 +725,8 @@
       g.target = g.target || DEFAULT_TARGET;
       g.slot = g.slot ?? null;
       g.result = g.result ?? null;
+      g.challenges = Array.isArray(g.challenges) ? g.challenges : [];
+      g.picking = null;
       for (const t of g.teams) t.timeline = Array.isArray(t.timeline) ? t.timeline : [];
       return g;
     }
@@ -688,6 +735,23 @@
 
   const isTimeline = () => !!game && game.mode === "timeline";
   const yearOf = (i) => parseInt(cards[i].year, 10);
+
+  // ¿Encaja el año en ese hueco de la línea? (año igual vale a cualquier lado)
+  function fits(timeline, slot, year) {
+    const prev = timeline[slot - 1];
+    const next = timeline[slot];
+    return (prev == null || yearOf(prev) <= year) && (next == null || year <= yearOf(next));
+  }
+
+  function insertSorted(timeline, cardIdx) {
+    const y = yearOf(cardIdx);
+    let i = timeline.findIndex((c) => yearOf(c) > y);
+    if (i < 0) i = timeline.length;
+    timeline.splice(i, 0, cardIdx);
+  }
+
+  // Se puede colocar o desafiar mientras la carta está sin revelar
+  const placingPhase = () => isTimeline() && !!currentCard() && !flipped && !game.skipped && !game.result;
 
   const saveGame = () => save(GAME_KEY, game);
   const teamColor = (i) => TEAM_COLORS[i % TEAM_COLORS.length];
@@ -740,11 +804,26 @@
     if (game.skipped) {
       text = `Canción saltada · sigue ${team.name}`;
     } else if (game.result) {
-      const c = cards[game.result.card];
-      text = game.result.ok ? `¡Correcto! ${team.name} suma la carta` : `¡Fallo! Era de ${c.year} · carta descartada`;
-      kind = game.result.ok ? "ok" : "bad";
+      const res = game.result;
+      const c = cards[res.card];
+      const challenged = (res.challengers || []).length > 0;
+      if (res.ok) {
+        text = `¡Correcto! ${team.name} suma la carta${challenged ? " · el desafío pierde su ficha" : ""}`;
+        kind = "ok";
+      } else if (res.thief != null) {
+        text = `¡Fallo! Era de ${c.year} · ¡${game.teams[res.thief].name} roba la carta!`;
+        kind = "ok";
+      } else {
+        text = `¡Fallo! Era de ${c.year} · carta descartada${challenged ? " · el desafío también falla" : ""}`;
+        kind = "bad";
+      }
+    } else if (game.picking != null) {
+      text = `${game.teams[game.picking].name}: toca dónde creéis que va (cuesta 1 moneda)`;
+      kind = "info";
     } else if (isTimeline() && currentCard()) {
-      text = game.slot == null ? "Toca dónde va la canción en la línea temporal" : "Pulsa Comprobar para ver si acertáis";
+      const who = game.challenges.map((ch) => game.teams[ch.team].name);
+      text = game.slot == null ? "Toca dónde va la canción en la línea temporal"
+        : who.length ? `Desafían: ${who.join(", ")} · pulsa Comprobar` : "Pulsa Comprobar para ver si acertáis";
       kind = "info";
     }
     note.textContent = text;
@@ -761,19 +840,26 @@
   // Línea temporal del equipo en turno, con huecos para colocar la carta
   function renderTimeline() {
     const box = $("timeline");
-    if (!isTimeline()) { box.innerHTML = ""; return; }
+    if (!isTimeline()) { box.innerHTML = ""; document.body.classList.remove("multi"); return; }
     const team = game.teams[game.turn];
-    const placing = !!currentCard() && !flipped && !game.skipped && !game.result;
+    const placing = placingPhase();
     const res = game.result;
+    const tokenAt = (i) => game.challenges.find((ch) => ch.slot === i);
 
     const mini = (i, cls = "") => {
       const c = cards[i];
       return `<div class="mini ${cls}" style="background:${c.bg_hex};color:${c.text_color}" title="${escapeHtml(`${c.artist} — ${c.title} (${c.year})`)}">
         <b>${c.year}</b><span>${escapeHtml(c.artist)}</span></div>`;
     };
-    const slot = (i) => game.slot === i
-      ? `<button class="slot selected" data-slot="${i}" aria-label="Hueco elegido">?</button>`
-      : `<button class="slot" data-slot="${i}" aria-label="Colocar en el hueco ${i + 1}">+</button>`;
+    const slot = (i) => {
+      if (game.slot === i) return `<button class="slot selected" data-slot="${i}" aria-label="Hueco elegido">?</button>`;
+      const tok = tokenAt(i);
+      if (tok) {
+        const who = escapeHtml(game.teams[tok.team].name);
+        return `<button class="slot token" data-slot="${i}" style="--tok:${teamColor(tok.team)}" title="Desafío de ${who}" aria-label="Ficha de ${who}"><svg><use href="#coin"/></svg></button>`;
+      }
+      return `<button class="slot" data-slot="${i}" aria-label="Colocar en el hueco ${i + 1}">+</button>`;
+    };
 
     let html = "";
     const items = team.timeline;
@@ -783,9 +869,59 @@
       if (i < items.length) html += mini(items[i], res && res.ok && items[i] === res.card ? "new" : "");
     }
     box.innerHTML = html || `<div class="timeline-empty">Línea temporal vacía</div>`;
+    box.classList.toggle("picking", game.picking != null);
+    if (game.picking != null) box.style.setProperty("--pick", teamColor(game.picking));
+    renderChallengeBar();
 
     const focus = box.querySelector(".selected, .new, .wrong");
     if (focus) focus.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+  }
+
+  // Otros equipos pueden desafiar la colocación del equipo en turno gastando 1 moneda
+  function renderChallengeBar() {
+    const bar = $("challengeBar");
+    const multi = isTimeline() && game.teams.length > 1;
+    document.body.classList.toggle("multi", multi);
+    const active = multi && placingPhase() && game.slot != null;
+    bar.classList.toggle("off", !active);
+    if (!active) { bar.innerHTML = ""; return; }
+    const others = game.teams.map((t, i) => i).filter((i) => i !== game.turn);
+    bar.innerHTML = `<span>¿Desafío?</span>` + others.map((i) => {
+      const t = game.teams[i];
+      const placed = game.challenges.some((ch) => ch.team === i);
+      const picking = game.picking === i;
+      const cls = placed ? "placed" : picking ? "picking" : "";
+      const label = placed ? "ficha puesta ✕" : picking ? "elige hueco…" : coinBadge(t.coins);
+      const title = placed ? "Quitar la ficha y recuperar la moneda" : "Desafiar gastando 1 moneda";
+      return `<button type="button" class="${cls}" data-challenger="${i}" title="${title}" ${!placed && t.coins < 1 ? "disabled" : ""}>
+        <span class="swatch" style="background:${teamColor(i)}"></span>${escapeHtml(t.name)} ${label}</button>`;
+    }).join("");
+  }
+
+  function toggleChallenger(i) {
+    if (busy || !placingPhase() || game.slot == null || i === game.turn) return;
+    const idx = game.challenges.findIndex((ch) => ch.team === i);
+    if (idx >= 0) {
+      game.challenges.splice(idx, 1);
+      game.teams[i].coins += 1; // se retira la ficha: devuelve la moneda
+      game.picking = null;
+    } else if (game.picking === i) {
+      game.picking = null;
+    } else if (game.teams[i].coins >= 1) {
+      game.picking = i;
+    }
+    saveGame();
+    renderTurn();
+  }
+
+  function placeChallenge(slot) {
+    const i = game.picking;
+    if (slot === game.slot || game.challenges.some((ch) => ch.slot === slot)) { flashNote(); return; }
+    game.teams[i].coins -= 1;
+    game.challenges.push({ team: i, slot });
+    game.picking = null;
+    saveGame();
+    renderTurn();
   }
 
   function renderControls() {
@@ -795,7 +931,8 @@
     flipLabel.textContent = checking ? "Comprobar" : flipped ? "Ver QR" : "Revelar";
     $("flipBtn").disabled = !card || (checking && game.slot == null);
     $("nextBtn").disabled = !card;
-    $("skipBtn").disabled = !card || !team || flipped || game.skipped || !!game.result || team.coins < 1;
+    $("skipBtn").disabled = !card || !team || flipped || game.skipped || !!game.result || team.coins < 1
+      || game.challenges.length > 0 || game.picking != null;
 
     const keep = game && game.skipped;
     $("nextBtn").classList.toggle("keep", !!keep);
@@ -970,24 +1107,39 @@
     const cardIdx = deck.order[deck.pos];
     const year = yearOf(cardIdx);
     const slot = game.slot;
-    const prev = team.timeline[slot - 1];
-    const next = team.timeline[slot];
-    const ok = (prev == null || yearOf(prev) <= year) && (next == null || year <= yearOf(next));
+    const ok = fits(team.timeline, slot, year);
+
+    // Si falla, roba la carta el primer desafío acertado (por orden de turno tras el equipo activo)
+    let thief = null;
+    if (!ok) {
+      const n = game.teams.length;
+      const order = (ch) => (ch.team - game.turn + n) % n;
+      const winner = [...game.challenges].sort((a, b) => order(a) - order(b)).find((ch) => fits(team.timeline, ch.slot, year));
+      if (winner) thief = winner.team;
+    }
     if (ok) team.timeline.splice(slot, 0, cardIdx);
-    game.result = { ok, slot, card: cardIdx };
+    else if (thief != null) insertSorted(game.teams[thief].timeline, cardIdx);
+
+    game.result = { ok, slot, card: cardIdx, thief, challengers: game.challenges.map((ch) => ch.team) };
     game.slot = null;
+    game.challenges = [];
+    game.picking = null;
     saveGame();
     renderTurn();
     setFlipped(true);
-    if (ok && !game.won && team.timeline.length >= game.target) {
+
+    const gainer = ok ? team : thief != null ? game.teams[thief] : null;
+    if (gainer && !game.won && gainer.timeline.length >= game.target) {
       game.won = true;
       saveGame();
-      setTimeout(() => showWin(team), 1100);
+      setTimeout(() => showWin(gainer), 1100);
     }
   }
 
   function chooseSlot(i) {
-    if (busy || !isTimeline() || !currentCard() || flipped || game.skipped || game.result) return;
+    if (busy || !placingPhase()) return;
+    if (game.picking != null) return placeChallenge(i);
+    if (game.challenges.length) { flashNote(); return; } // con desafíos puestos, la colocación queda fijada
     game.slot = game.slot === i ? null : i;
     saveGame();
     renderNote();
@@ -1029,6 +1181,8 @@
         game.skipped = false;
         game.slot = null;
         game.result = null;
+        game.challenges = [];
+        game.picking = null;
         saveGame();
       }
       setFlipped(false, false);
@@ -1045,7 +1199,12 @@
     if (deck.pos > 0 && currentCard() && !confirm("¿Barajar de nuevo y empezar desde la primera carta?")) return;
     deck = { order: shuffled(cards.length), pos: 0 };
     saveDeck();
-    if (game) { game.skipped = false; game.slot = null; game.result = null; saveGame(); }
+    if (game) {
+      // Las fichas de desafío puestas se devuelven
+      for (const ch of game.challenges) game.teams[ch.team].coins += 1;
+      Object.assign(game, { skipped: false, slot: null, result: null, challenges: [], picking: null });
+      saveGame();
+    }
     setFlipped(false, false);
     render();
   }
@@ -1125,6 +1284,8 @@
       skipped: false,
       slot: null,
       result: null,
+      challenges: [],
+      picking: null,
       startCoins: draft.coins,
     };
     if ($("reshuffleChk").checked) deck = { order: shuffled(cards.length), pos: 0 };
@@ -1190,6 +1351,10 @@
   });
   cardEl.addEventListener("dblclick", (e) => e.preventDefault());
 
+  $("challengeBar").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-challenger]");
+    if (b) toggleChallenger(+b.dataset.challenger);
+  });
   $("timeline").addEventListener("click", (e) => {
     const b = e.target.closest("[data-slot]");
     if (b) chooseSlot(+b.dataset.slot);

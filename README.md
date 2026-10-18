@@ -23,6 +23,10 @@ build_data.py         Regenera cards.js desde el CSV
   En su turno toca el hueco de su línea donde cree que va la canción y pulsa **Comprobar**
   (o doble toque). Si el año encaja (año igual vale a cualquier lado) se queda la carta;
   si no, se descarta. Gana el primero que llega a las cartas objetivo (10 por defecto).
+- **Desafío**: con el hueco elegido y antes de comprobar, otro equipo puede gastar 1 moneda y poner
+  su ficha en otro hueco de la misma línea. Si el equipo en turno acierta, el desafío pierde la ficha;
+  si falla y la ficha estaba bien, ese equipo roba la carta para su línea. La ficha se gasta siempre;
+  tocando de nuevo al equipo antes de comprobar se retira y se recupera la moneda.
 - **Libre**: solo turnos y monedas; la línea temporal se juega fuera de la web.
 - Arriba se muestra el equipo en turno y las monedas de cada equipo.
 - Doble toque / doble clic en la carta, botón **Revelar** o `Espacio`: girar la carta.
