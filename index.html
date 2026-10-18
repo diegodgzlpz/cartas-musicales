@@ -614,7 +614,7 @@
   <dialog id="scoreDlg">
     <form method="dialog" class="dlg">
       <h2>Monedas</h2>
-      <p class="sub">Suma monedas al acertar artista y título, o réstalas en un desafío.</p>
+      <p class="sub">Suma monedas al acertar artista y título (máximo 5 por equipo).</p>
       <div class="score-rows" id="scoreRows"></div>
       <div class="dlg-actions">
         <button type="button" id="newGameBtn">Nueva partida</button>
@@ -657,7 +657,8 @@
   // ---- Constantes de partida ----
   const TEAM_COLORS = ["#EA1E63", "#2196F3", "#F7D51D", "#1ED760", "#F04A23", "#B455D6", "#00BCD4", "#FF9800"];
   const MAX_TEAMS = TEAM_COLORS.length;
-  const MAX_START_COINS = 5;
+  const MAX_COINS = 5;         // máximo de monedas por equipo (como Hitster)
+  const MAX_START_COINS = MAX_COINS;
   const DEFAULT_TARGET = 10;   // cartas en la línea temporal para ganar (como Hitster)
   const MIN_TARGET = 3;
   const MAX_TARGET = 30;
@@ -727,7 +728,10 @@
       g.result = g.result ?? null;
       g.challenges = Array.isArray(g.challenges) ? g.challenges : [];
       g.picking = null;
-      for (const t of g.teams) t.timeline = Array.isArray(t.timeline) ? t.timeline : [];
+      for (const t of g.teams) {
+        t.timeline = Array.isArray(t.timeline) ? t.timeline : [];
+        t.coins = Math.min(MAX_COINS, Math.max(0, t.coins | 0));
+      }
       return g;
     }
     return null;
@@ -882,10 +886,12 @@
     const bar = $("challengeBar");
     const multi = isTimeline() && game.teams.length > 1;
     document.body.classList.toggle("multi", multi);
-    const active = multi && placingPhase() && game.slot != null;
+    // Solo pueden desafiar los equipos con monedas (o que ya tienen ficha puesta)
+    const others = game.teams.map((t, i) => i)
+      .filter((i) => i !== game.turn && (game.teams[i].coins >= 1 || game.challenges.some((ch) => ch.team === i)));
+    const active = multi && placingPhase() && game.slot != null && others.length > 0;
     bar.classList.toggle("off", !active);
     if (!active) { bar.innerHTML = ""; return; }
-    const others = game.teams.map((t, i) => i).filter((i) => i !== game.turn);
     bar.innerHTML = `<span>¿Desafío?</span>` + others.map((i) => {
       const t = game.teams[i];
       const placed = game.challenges.some((ch) => ch.team === i);
@@ -893,7 +899,7 @@
       const cls = placed ? "placed" : picking ? "picking" : "";
       const label = placed ? "ficha puesta ✕" : picking ? "elige hueco…" : coinBadge(t.coins);
       const title = placed ? "Quitar la ficha y recuperar la moneda" : "Desafiar gastando 1 moneda";
-      return `<button type="button" class="${cls}" data-challenger="${i}" title="${title}" ${!placed && t.coins < 1 ? "disabled" : ""}>
+      return `<button type="button" class="${cls}" data-challenger="${i}" title="${title}">
         <span class="swatch" style="background:${teamColor(i)}"></span>${escapeHtml(t.name)} ${label}</button>`;
     }).join("");
   }
@@ -903,7 +909,7 @@
     const idx = game.challenges.findIndex((ch) => ch.team === i);
     if (idx >= 0) {
       game.challenges.splice(idx, 1);
-      game.teams[i].coins += 1; // se retira la ficha: devuelve la moneda
+      game.teams[i].coins = Math.min(MAX_COINS, game.teams[i].coins + 1); // se retira la ficha: devuelve la moneda
       game.picking = null;
     } else if (game.picking === i) {
       game.picking = null;
@@ -930,7 +936,8 @@
     const checking = isTimeline() && !!card && !flipped && !game.skipped && !game.result;
     flipLabel.textContent = checking ? "Comprobar" : flipped ? "Ver QR" : "Revelar";
     $("flipBtn").disabled = !card || (checking && game.slot == null);
-    $("nextBtn").disabled = !card;
+    $("nextBtn").disabled = !card || mustPlace();
+    $("nextBtn").title = mustPlace() ? "Primero colocad la carta en la línea temporal y comprobad (o saltadla)" : "";
     $("skipBtn").disabled = !card || !team || flipped || game.skipped || !!game.result || team.coins < 1
       || game.challenges.length > 0 || game.picking != null;
 
@@ -1166,8 +1173,14 @@
     setFlipped(true);
   }
 
+  // En línea temporal no se pasa turno sin colocar y comprobar la carta (o saltarla con moneda)
+  function mustPlace() {
+    return isTimeline() && !!currentCard() && !game.result && !game.skipped;
+  }
+
   function next() {
     if (busy || !currentCard()) return;
+    if (mustPlace()) { flashNote(); return; }
     busy = true;
     const keepTurn = game && game.skipped;
     stage.classList.toggle("keep", !!keepTurn);
@@ -1201,7 +1214,7 @@
     saveDeck();
     if (game) {
       // Las fichas de desafío puestas se devuelven
-      for (const ch of game.challenges) game.teams[ch.team].coins += 1;
+      for (const ch of game.challenges) game.teams[ch.team].coins = Math.min(MAX_COINS, game.teams[ch.team].coins + 1);
       Object.assign(game, { skipped: false, slot: null, result: null, challenges: [], picking: null });
       saveGame();
     }
@@ -1312,7 +1325,7 @@
         <div class="stepper">
           <button type="button" data-team="${i}" data-delta="-1" aria-label="Quitar moneda" ${t.coins <= 0 ? "disabled" : ""}>−</button>
           <output>${t.coins}</output>
-          <button type="button" data-team="${i}" data-delta="1" aria-label="Añadir moneda">+</button>
+          <button type="button" data-team="${i}" data-delta="1" aria-label="Añadir moneda" ${t.coins >= MAX_COINS ? "disabled" : ""}>+</button>
         </div>
       </div>`).join("");
   }
@@ -1327,7 +1340,7 @@
     const b = e.target.closest("[data-team]");
     if (!b) return;
     const t = game.teams[+b.dataset.team];
-    t.coins = Math.max(0, t.coins + +b.dataset.delta);
+    t.coins = Math.min(MAX_COINS, Math.max(0, t.coins + +b.dataset.delta));
     saveGame();
     renderScores();
     renderTurn();

@@ -27,6 +27,8 @@ build_data.py         Regenera cards.js desde el CSV
   su ficha en otro hueco de la misma línea. Si el equipo en turno acierta, el desafío pierde la ficha;
   si falla y la ficha estaba bien, ese equipo roba la carta para su línea. La ficha se gasta siempre;
   tocando de nuevo al equipo antes de comprobar se retira y se recupera la moneda.
+- Reglas: máximo 5 monedas por equipo; en línea temporal no se pasa turno sin colocar y comprobar
+  la carta (o saltarla con moneda); el desafío solo aparece si algún otro equipo tiene monedas.
 - **Libre**: solo turnos y monedas; la línea temporal se juega fuera de la web.
 - Arriba se muestra el equipo en turno y las monedas de cada equipo.
 - Doble toque / doble clic en la carta, botón **Revelar** o `Espacio`: girar la carta.
