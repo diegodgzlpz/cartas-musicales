@@ -277,6 +277,33 @@
   .segmented button { border: 0; background: transparent; padding: 8px 14px; font-size: 14px; color: var(--muted); }
   .segmented button.on { background: var(--ink); color: #111; font-weight: 700; }
   .mode-help { margin: -8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+  .mini small { font-size: 9px; opacity: 0.85; margin-top: -2px; }
+
+  /* ---- Categorías ---- */
+  .cats { border: 1px solid var(--line); border-radius: 12px; }
+  .cats summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 15px;
+  }
+  .cats summary::-webkit-details-marker { display: none; }
+  .cats summary::after { content: "▾"; color: var(--muted); transition: transform 200ms ease; }
+  .cats[open] summary::after { transform: rotate(180deg); }
+  .cats summary span { margin-left: auto; color: var(--muted); font-size: 13px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .cats-body { display: flex; flex-direction: column; gap: 12px; padding: 0 14px 14px; }
+  .cat-group > div:first-child { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .opts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .opts button { padding: 6px 11px; font-size: 13px; color: var(--muted); }
+  .opts button.on { background: var(--ink); color: #111; border-color: transparent; font-weight: 700; }
+  .opts button small { font-weight: 400; opacity: 0.7; }
+  .cat-count { margin: 0; font-size: 13px; color: var(--muted); }
+  .cat-count b { color: var(--ink); }
+  .cat-count.bad, .cat-count.bad b { color: var(--bad); }
 
   .win { text-align: center; align-items: center; }
   .win .trophy { font-size: 54px; line-height: 1; }
@@ -392,6 +419,10 @@
     width: min(100%, 600px);
   }
   .controls button { padding: 13px 10px; }
+  .controls button[hidden] { display: none; }
+  body.hard .controls { grid-template-columns: 1fr 1.25fr; }
+  body.easy .controls { grid-template-columns: 1fr 1fr 1fr 1.25fr; width: min(100%, 680px); }
+  .buy-btn .coins { color: var(--coin); }
 
   .controls .primary {
     background: var(--accent);
@@ -486,6 +517,11 @@
     .counter { font-size: 13px; margin-right: 0; }
     .brand span { display: none; }
     .controls button { font-size: 14px; gap: 6px; }
+    /* Fácil: cuatro botones no caben en una fila; "Siguiente" va debajo a todo el ancho */
+    body.easy .controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    body.easy .controls .primary { grid-column: 1 / -1; }
+    body.timeline-mode.easy { --tl: 148px; }
+    body.timeline-mode.multi.easy { --tl: 184px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -556,12 +592,16 @@
         <span>Saltar</span>
         <span class="coins">−1 <svg class="coin-icon"><use href="#coin"/></svg></span>
       </button>
+      <button class="buy-btn" id="buyBtn" title="Gasta 3 monedas: la carta va directa a vuestra línea temporal" hidden>
+        <span>Comprar</span>
+        <span class="coins">−3 <svg class="coin-icon"><use href="#coin"/></svg></span>
+      </button>
       <button class="primary" id="nextBtn">
         <span id="nextLabel">Siguiente</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
       </button>
     </div>
-    <p class="hint">Doble toque en la carta para darle la vuelta<span class="keys"> · <kbd>Espacio</kbd> girar · <kbd>S</kbd> saltar · <kbd>→</kbd> siguiente</span></p>
+    <p class="hint">Doble toque en la carta para darle la vuelta<span class="keys"> · <kbd>Espacio</kbd> girar<span id="hintSkip"> · <kbd>S</kbd> saltar</span><span id="hintBuy" hidden> · <kbd>C</kbd> comprar</span> · <kbd>→</kbd> siguiente</span></p>
   </footer>
 
   <!-- Configuración de la partida -->
@@ -577,6 +617,24 @@
         </div>
       </div>
       <p class="mode-help" id="modeHelp"></p>
+      <div class="field">
+        <label>Dificultad</label>
+        <div class="segmented" id="levelSeg">
+          <button type="button" data-level="easy">Fácil</button>
+          <button type="button" data-level="normal">Normal</button>
+          <button type="button" data-level="hard">Difícil</button>
+        </div>
+      </div>
+      <p class="mode-help" id="levelHelp"></p>
+      <details class="cats" id="catsBox">
+        <summary>Categorías <span id="catsSummary">Todas</span></summary>
+        <div class="cats-body">
+          <div class="cat-group"><div>Estilo</div><div class="opts" data-cat="genres"></div></div>
+          <div class="cat-group"><div>Idioma</div><div class="opts" data-cat="languages"></div></div>
+          <div class="cat-group"><div>Década</div><div class="opts" data-cat="decades"></div></div>
+          <p class="cat-count" id="catCount"></p>
+        </div>
+      </details>
       <div class="field" id="targetField">
         <label>Cartas para ganar</label>
         <div class="stepper">
@@ -662,9 +720,48 @@
   const DEFAULT_TARGET = 10;   // cartas en la línea temporal para ganar (como Hitster)
   const MIN_TARGET = 3;
   const MAX_TARGET = 30;
+  const BUY_COST = 3;          // fácil: comprar la carta en juego
+
+  // ---- Dificultad ----
+  const LEVELS = ["easy", "normal", "hard"];
+  const LEVEL_HELP = {
+    easy: `Como en normal, y además se puede comprar la carta en juego por ${BUY_COST} monedas: va directa a vuestra línea temporal.`,
+    normal: "Saltar una canción cuesta 1 moneda.",
+    hard: "No se pueden saltar canciones con monedas y, si dos cartas son del mismo año, el mes decide si va antes o después.",
+  };
+
+  // ---- Categorías (estilo e idioma vienen de categorias.csv; la década se calcula con el año) ----
+  const GENRES = ["Pop", "Rock", "Latino", "Hip hop y R&B", "Dance y electrónica", "Soul, funk y disco", "Canción española"];
+  const LANGUAGES = ["Español", "Inglés", "Otros"];
+  const MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const FIRST_DECADE = 1960;   // las canciones anteriores van con los 60
+  const decadeLabel = (d) => d === FIRST_DECADE ? "60s y antes" : d < 2000 ? `${String(d).slice(2)}s` : `${d}s`;
 
   const { fields, rows } = window.CARD_DATA;
-  const cards = rows.map((r) => Object.fromEntries(fields.map((f, i) => [f, r[i]])));
+  const cards = rows.map((r) => Object.fromEntries(fields.map((f, i) => [f, r[i] ?? ""])));
+  for (const c of cards) {
+    c.decade = Math.max(FIRST_DECADE, Math.floor(parseInt(c.year, 10) / 10) * 10);
+    c.monthNum = MONTHS.indexOf((c.month || "").toLowerCase()) + 1; // 0 = sin mes
+  }
+  // Opciones de cada categoría con las cartas que hay de cada una (en el orden de las constantes)
+  const ordered = (values, order) => [...new Set(values)].filter(Boolean)
+    .sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99) || String(a).localeCompare(String(b)));
+  const CATEGORIES = {
+    genres: { field: "genre", label: (v) => v, options: ordered(cards.map((c) => c.genre), GENRES) },
+    languages: { field: "language", label: (v) => v, options: ordered(cards.map((c) => c.language), LANGUAGES) },
+    decades: { field: "decade", label: decadeLabel, options: [...new Set(cards.map((c) => c.decade))].sort((a, b) => a - b) },
+  };
+  const emptyFilter = () => ({ genres: [], languages: [], decades: [] });
+
+  // Filtro vacío en una categoría = "Todas"
+  function matches(card, filter) {
+    return Object.entries(CATEGORIES).every(([key, cat]) => {
+      const sel = (filter && filter[key]) || [];
+      return !sel.length || sel.includes(card[cat.field]);
+    });
+  }
+  const filteredIndices = (filter) => cards.map((c, i) => (matches(c, filter) ? i : -1)).filter((i) => i >= 0);
+  const filterKey = (filter) => JSON.stringify(Object.keys(CATEGORIES).map((k) => [...((filter && filter[k]) || [])].sort()));
 
   const $ = (id) => document.getElementById(id);
   const stage = $("stage");
@@ -684,36 +781,46 @@
     try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) { /* almacenamiento no disponible */ }
   }
 
-  // ---- Mazo: orden barajado persistente ----
+  // ---- Mazo: orden barajado persistente de las cartas de las categorías elegidas ----
+  // deck = { order: [índices de carta], pos, key: filtro con el que se barajó }
   let deck = loadDeck();
   let flipped = false;
   let busy = false;
 
-  function shuffled(n) {
-    const a = Array.from({ length: n }, (_, i) => i);
-    for (let i = n - 1; i > 0; i--) {
+  function shuffled(items) {
+    const a = [...items];
+    for (let i = a.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
   }
 
+  function newDeck(filter) {
+    return { order: shuffled(filteredIndices(filter)), pos: 0, key: filterKey(filter) };
+  }
+
   function loadDeck() {
     const saved = load(STORAGE_KEY);
-    if (saved && Array.isArray(saved.order) && saved.order.length === cards.length && saved.pos >= 0) return saved;
-    return { order: shuffled(cards.length), pos: 0 };
+    if (saved && Array.isArray(saved.order) && saved.order.length && saved.pos >= 0
+      && saved.order.every((i) => Number.isInteger(i) && i >= 0 && i < cards.length)) {
+      saved.key = saved.key ?? filterKey(emptyFilter()); // mazos guardados antes de las categorías
+      return saved;
+    }
+    return newDeck(emptyFilter());
   }
 
   const saveDeck = () => save(STORAGE_KEY, deck);
 
   // ---- Partida: equipos, turno y monedas ----
   // game = {
-  //   mode: "timeline" | "free", target, startCoins, turn, skipped,
+  //   mode: "timeline" | "free", level: "easy" | "normal" | "hard", target, startCoins, turn, skipped,
+  //   filter: { genres, languages, decades } categorías elegidas (vacío = todas),
   //   teams: [{ name, coins, timeline: [índices de carta ordenados por año] }],
   //   slot: hueco elegido en la línea temporal (o null),
   //   challenges: [{ team, slot }] fichas de desafío de otros equipos en la línea del equipo en turno,
   //   picking: equipo que está colocando su ficha de desafío (o null),
-  //   result: { ok, slot, card, thief, challengers } tras comprobar (o null),
+  //   result: { ok, slot, card, thief, challengers, bought } tras comprobar o comprar (o null),
   //   won: true cuando ya se ha anunciado un ganador
   // }
   let game = loadGame();
@@ -723,6 +830,8 @@
     if (g && Array.isArray(g.teams) && g.teams.length >= 1 && g.teams.length <= MAX_TEAMS) {
       g.turn = Math.min(Math.max(0, g.turn | 0), g.teams.length - 1);
       g.mode = g.mode === "timeline" ? "timeline" : "free";
+      g.level = LEVELS.includes(g.level) ? g.level : "normal";
+      g.filter = g.filter && typeof g.filter === "object" ? { ...emptyFilter(), ...g.filter } : emptyFilter();
       g.target = g.target || DEFAULT_TARGET;
       g.slot = g.slot ?? null;
       g.result = g.result ?? null;
@@ -738,20 +847,31 @@
   }
 
   const isTimeline = () => !!game && game.mode === "timeline";
+  const level = () => (game ? game.level : "normal");
+  const canBuy = () => isTimeline() && level() === "easy";
   const yearOf = (i) => parseInt(cards[i].year, 10);
 
-  // ¿Encaja el año en ese hueco de la línea? (año igual vale a cualquier lado)
-  function fits(timeline, slot, year) {
-    const prev = timeline[slot - 1];
-    const next = timeline[slot];
-    return (prev == null || yearOf(prev) <= year) && (next == null || year <= yearOf(next));
+  // Orden entre dos cartas: por año y, en difícil, por mes si las dos lo tienen (0 = valen a cualquier lado)
+  function compareCards(a, b) {
+    const dy = yearOf(a) - yearOf(b);
+    if (dy || level() !== "hard") return dy;
+    const ma = cards[a].monthNum, mb = cards[b].monthNum;
+    return ma && mb ? ma - mb : 0;
+  }
+
+  // ¿Encaja la carta en ese hueco de la línea? (empate vale a cualquier lado). Se compara con toda la
+  // línea y no solo con los vecinos: en difícil, una carta sin mes entre dos del mismo año no debe
+  // permitir saltarse el orden de los meses.
+  function fits(timeline, slot, cardIdx) {
+    return timeline.slice(0, slot).every((c) => compareCards(c, cardIdx) <= 0)
+      && timeline.slice(slot).every((c) => compareCards(cardIdx, c) <= 0);
   }
 
   function insertSorted(timeline, cardIdx) {
-    const y = yearOf(cardIdx);
-    let i = timeline.findIndex((c) => yearOf(c) > y);
+    let i = timeline.findIndex((c) => compareCards(c, cardIdx) > 0);
     if (i < 0) i = timeline.length;
     timeline.splice(i, 0, cardIdx);
+    return i;
   }
 
   // Se puede colocar o desafiar mientras la carta está sin revelar
@@ -785,6 +905,8 @@
     }
 
     const tl = isTimeline();
+    document.body.classList.toggle("hard", level() === "hard");
+    document.body.classList.toggle("easy", canBuy());
     $("teamStrip").innerHTML = game.teams.map((t, i) => `
       <span class="chip${i === game.turn ? " active" : ""}">
         <span class="swatch" style="background:${teamColor(i)}"></span>
@@ -811,14 +933,18 @@
       const res = game.result;
       const c = cards[res.card];
       const challenged = (res.challengers || []).length > 0;
-      if (res.ok) {
+      const when = level() === "hard" && c.monthNum ? `${c.month.toLowerCase()} de ${c.year}` : c.year;
+      if (res.bought) {
+        text = `Carta comprada · ${team.name} la suma a su línea`;
+        kind = "ok";
+      } else if (res.ok) {
         text = `¡Correcto! ${team.name} suma la carta${challenged ? " · el desafío pierde su ficha" : ""}`;
         kind = "ok";
       } else if (res.thief != null) {
-        text = `¡Fallo! Era de ${c.year} · ¡${game.teams[res.thief].name} roba la carta!`;
+        text = `¡Fallo! Era de ${when} · ¡${game.teams[res.thief].name} roba la carta!`;
         kind = "ok";
       } else {
-        text = `¡Fallo! Era de ${c.year} · carta descartada${challenged ? " · el desafío también falla" : ""}`;
+        text = `¡Fallo! Era de ${when} · carta descartada${challenged ? " · el desafío también falla" : ""}`;
         kind = "bad";
       }
     } else if (game.picking != null) {
@@ -826,7 +952,7 @@
       kind = "info";
     } else if (isTimeline() && currentCard()) {
       const who = game.challenges.map((ch) => game.teams[ch.team].name);
-      text = game.slot == null ? "Toca dónde va la canción en la línea temporal"
+      text = game.slot == null ? `Toca dónde va la canción en la línea temporal${level() === "hard" ? " (mismo año: cuenta el mes)" : ""}`
         : who.length ? `Desafían: ${who.join(", ")} · pulsa Comprobar` : "Pulsa Comprobar para ver si acertáis";
       kind = "info";
     }
@@ -853,7 +979,7 @@
     const mini = (i, cls = "") => {
       const c = cards[i];
       return `<div class="mini ${cls}" style="background:${c.bg_hex};color:${c.text_color}" title="${escapeHtml(`${c.artist} — ${c.title} (${c.year})`)}">
-        <b>${c.year}</b><span>${escapeHtml(c.artist)}</span></div>`;
+        <b>${c.year}</b>${level() === "hard" && c.monthNum ? `<small>${c.month.slice(0, 3).toLowerCase()}</small>` : ""}<span>${escapeHtml(c.artist)}</span></div>`;
     };
     const slot = (i) => {
       if (game.slot === i) return `<button class="slot selected" data-slot="${i}" aria-label="Hueco elegido">?</button>`;
@@ -938,8 +1064,14 @@
     $("flipBtn").disabled = !card || (checking && game.slot == null);
     $("nextBtn").disabled = !card || mustPlace();
     $("nextBtn").title = mustPlace() ? "Primero colocad la carta en la línea temporal y comprobad (o saltadla)" : "";
-    $("skipBtn").disabled = !card || !team || flipped || game.skipped || !!game.result || team.coins < 1
+    const hard = level() === "hard";
+    $("skipBtn").hidden = hard;
+    $("hintSkip").hidden = hard;
+    $("skipBtn").disabled = hard || !card || !team || flipped || game.skipped || !!game.result || team.coins < 1
       || game.challenges.length > 0 || game.picking != null;
+    $("buyBtn").hidden = !canBuy();
+    $("hintBuy").hidden = !canBuy();
+    $("buyBtn").disabled = !canBuyNow();
 
     const keep = game && game.skipped;
     $("nextBtn").classList.toggle("keep", !!keep);
@@ -1112,16 +1244,15 @@
   function check() {
     const team = game.teams[game.turn];
     const cardIdx = deck.order[deck.pos];
-    const year = yearOf(cardIdx);
     const slot = game.slot;
-    const ok = fits(team.timeline, slot, year);
+    const ok = fits(team.timeline, slot, cardIdx);
 
     // Si falla, roba la carta el primer desafío acertado (por orden de turno tras el equipo activo)
     let thief = null;
     if (!ok) {
       const n = game.teams.length;
       const order = (ch) => (ch.team - game.turn + n) % n;
-      const winner = [...game.challenges].sort((a, b) => order(a) - order(b)).find((ch) => fits(team.timeline, ch.slot, year));
+      const winner = [...game.challenges].sort((a, b) => order(a) - order(b)).find((ch) => fits(team.timeline, ch.slot, cardIdx));
       if (winner) thief = winner.team;
     }
     if (ok) team.timeline.splice(slot, 0, cardIdx);
@@ -1135,12 +1266,35 @@
     renderTurn();
     setFlipped(true);
 
-    const gainer = ok ? team : thief != null ? game.teams[thief] : null;
+    checkWin(ok ? team : thief != null ? game.teams[thief] : null);
+  }
+
+  function checkWin(gainer) {
     if (gainer && !game.won && gainer.timeline.length >= game.target) {
       game.won = true;
       saveGame();
       setTimeout(() => showWin(gainer), 1100);
     }
+  }
+
+  // Fácil: comprar la carta en juego antes de comprobar (sin desafíos puestos)
+  function canBuyNow() {
+    return canBuy() && placingPhase() && game.challenges.length === 0 && game.picking == null
+      && game.teams[game.turn].coins >= BUY_COST;
+  }
+
+  function buy() {
+    if (busy || !canBuyNow()) return;
+    const team = game.teams[game.turn];
+    const cardIdx = deck.order[deck.pos];
+    team.coins -= BUY_COST;
+    const slot = insertSorted(team.timeline, cardIdx);
+    game.result = { ok: true, slot, card: cardIdx, thief: null, challengers: [], bought: true };
+    game.slot = null;
+    saveGame();
+    renderTurn();
+    setFlipped(true);
+    checkWin(team);
   }
 
   function chooseSlot(i) {
@@ -1162,9 +1316,9 @@
 
   // Saltar: gasta 1 moneda del equipo en turno, revela la carta y mantiene el turno
   function skip() {
-    if (busy || !currentCard() || !game || flipped || game.skipped || game.result) return;
+    if (busy || !currentCard() || !game || flipped || game.skipped || game.result || level() === "hard") return;
     const team = game.teams[game.turn];
-    if (team.coins < 1) return;
+    if (team.coins < 1 || game.challenges.length || game.picking != null) return;
     team.coins -= 1;
     game.skipped = true;
     game.slot = null;
@@ -1210,7 +1364,7 @@
   function reshuffle() {
     if (busy) return;
     if (deck.pos > 0 && currentCard() && !confirm("¿Barajar de nuevo y empezar desde la primera carta?")) return;
-    deck = { order: shuffled(cards.length), pos: 0 };
+    deck = newDeck(game ? game.filter : emptyFilter());
     saveDeck();
     if (game) {
       // Las fichas de desafío puestas se devuelven
@@ -1224,7 +1378,7 @@
 
   // ---- Diálogo: nueva partida ----
   const setupDlg = $("setupDlg");
-  let draft = { names: [], coins: 2, mode: "timeline", target: DEFAULT_TARGET };
+  let draft = { names: [], coins: 2, mode: "timeline", level: "normal", filter: emptyFilter(), target: DEFAULT_TARGET };
 
   function openSetup() {
     const teams = game ? game.teams : [];
@@ -1232,9 +1386,12 @@
       names: teams.length ? teams.map((t) => t.name) : [defaultName(0), defaultName(1)],
       coins: game ? game.startCoins ?? 2 : 2,
       mode: game ? game.mode : "timeline",
+      level: level(),
+      filter: structuredClone(game ? game.filter : emptyFilter()),
       target: game ? game.target : DEFAULT_TARGET,
     };
     $("reshuffleChk").checked = false;
+    $("catsBox").open = false;
     $("setupCancel").hidden = !game;
     renderSetup();
     scoreDlg.close();
@@ -1250,6 +1407,13 @@
     $("modeHelp").textContent = draft.mode === "timeline"
       ? "Cada equipo empieza con una carta revelada y coloca cada canción en su línea temporal. Si acierta el hueco, se la queda."
       : "Solo turnos y monedas: la línea temporal se juega fuera de la web.";
+    $("levelSeg").querySelectorAll("[data-level]").forEach((b) => b.classList.toggle("on", b.dataset.level === draft.level));
+    $("levelHelp").textContent = draft.level === "easy" && draft.mode !== "timeline"
+      ? "Comprar cartas solo existe en el modo línea temporal; en libre es como normal."
+      : draft.level === "hard" && draft.mode !== "timeline"
+        ? "No se pueden saltar canciones con monedas."
+        : LEVEL_HELP[draft.level];
+    renderCategories();
     const box = $("nameInputs");
     box.innerHTML = draft.names.map((n, i) => `
       <div class="name-row">
@@ -1264,6 +1428,40 @@
     });
   }
 
+  // Cartas necesarias para empezar: una inicial por equipo en línea temporal y al menos una para jugar
+  const minCards = () => (draft.mode === "timeline" ? draft.names.length : 0) + 1;
+
+  function renderCategories() {
+    const count = (key, value) => filteredIndices({ ...draft.filter, [key]: [value] }).length;
+    for (const box of setupDlg.querySelectorAll(".opts[data-cat]")) {
+      const key = box.dataset.cat;
+      const cat = CATEGORIES[key];
+      const sel = draft.filter[key];
+      box.innerHTML = `<button type="button" class="${sel.length ? "" : "on"}" data-opt="">Todas</button>`
+        + cat.options.map((v) => `<button type="button" class="${sel.includes(v) ? "on" : ""}" data-opt="${escapeHtml(String(v))}">
+            ${escapeHtml(cat.label(v))} <small>${count(key, v)}</small></button>`).join("");
+    }
+    const n = filteredIndices(draft.filter).length;
+    const enough = n >= minCards();
+    $("catCount").innerHTML = enough ? `<b>${n}</b> canciones con estas categorías`
+      : `Solo <b>${n}</b> canciones: elige más categorías`;
+    $("catCount").classList.toggle("bad", !enough);
+    const parts = Object.entries(CATEGORIES).filter(([k]) => draft.filter[k].length)
+      .map(([k, cat]) => draft.filter[k].map(cat.label).join(", "));
+    $("catsSummary").textContent = parts.length ? `${parts.join(" · ")} (${n})` : "Todas";
+    $("setupForm").querySelector("[type=submit]").disabled = !enough;
+  }
+
+  function toggleOption(key, raw) {
+    const cat = CATEGORIES[key];
+    const sel = draft.filter[key];
+    if (raw === "") { sel.length = 0; return; }
+    const value = cat.options.find((v) => String(v) === raw);
+    const i = sel.indexOf(value);
+    if (i >= 0) sel.splice(i, 1); else sel.push(value);
+    if (sel.length === cat.options.length) sel.length = 0; // todas marcadas = "Todas"
+  }
+
   $("nameInputs").addEventListener("input", (e) => {
     if (e.target.dataset.i != null) draft.names[+e.target.dataset.i] = e.target.value;
   });
@@ -1271,6 +1469,10 @@
   setupDlg.addEventListener("click", (e) => {
     const m = e.target.closest("[data-mode]");
     if (m) { draft.mode = m.dataset.mode; renderSetup(); return; }
+    const l = e.target.closest("[data-level]");
+    if (l) { draft.level = l.dataset.level; renderSetup(); return; }
+    const o = e.target.closest("[data-opt]");
+    if (o) { toggleOption(o.closest("[data-cat]").dataset.cat, o.dataset.opt); renderCategories(); return; }
     const b = e.target.closest("[data-step]");
     if (!b) return;
     const delta = +b.dataset.delta;
@@ -1291,6 +1493,8 @@
   $("setupForm").addEventListener("submit", () => {
     game = {
       mode: draft.mode,
+      level: draft.level,
+      filter: draft.filter,
       target: draft.target,
       teams: draft.names.map((n, i) => ({ name: n.trim() || defaultName(i), coins: draft.coins, timeline: [] })),
       turn: 0,
@@ -1301,11 +1505,12 @@
       picking: null,
       startCoins: draft.coins,
     };
-    if ($("reshuffleChk").checked) deck = { order: shuffled(cards.length), pos: 0 };
+    // Con otras categorías se baraja un mazo nuevo solo con sus canciones
+    if ($("reshuffleChk").checked || deck.key !== filterKey(game.filter)) deck = newDeck(game.filter);
     else if (flipped) deck.pos = Math.min(deck.pos + 1, deck.order.length); // la carta ya vista no se reutiliza
     // Línea temporal: cada equipo empieza con una carta ya revelada
     if (game.mode === "timeline") {
-      if (deck.order.length - deck.pos <= game.teams.length) deck = { order: shuffled(cards.length), pos: 0 };
+      if (deck.order.length - deck.pos <= game.teams.length) deck = newDeck(game.filter);
       for (const t of game.teams) t.timeline.push(deck.order[deck.pos++]);
     }
     saveGame();
@@ -1374,6 +1579,7 @@
   });
   $("flipBtn").addEventListener("click", flip);
   $("skipBtn").addEventListener("click", skip);
+  $("buyBtn").addEventListener("click", buy);
   $("nextBtn").addEventListener("click", next);
   $("shuffleBtn").addEventListener("click", reshuffle);
   $("restartBtn").addEventListener("click", reshuffle);
@@ -1390,6 +1596,7 @@
     if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
     else if (e.key === "ArrowRight" || e.key.toLowerCase() === "n") { e.preventDefault(); next(); }
     else if (e.key.toLowerCase() === "s") { e.preventDefault(); skip(); }
+    else if (e.key.toLowerCase() === "c") { e.preventDefault(); buy(); }
   });
 
   // Mantener la pantalla encendida durante la partida

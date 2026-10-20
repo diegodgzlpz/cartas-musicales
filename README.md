@@ -30,6 +30,15 @@ build_data.py         Regenera cards.js desde el CSV
 - Reglas: máximo 5 monedas por equipo; en línea temporal no se pasa turno sin colocar y comprobar
   la carta (o saltarla con moneda); el desafío solo aparece si algún otro equipo tiene monedas.
 - **Libre**: solo turnos y monedas; la línea temporal se juega fuera de la web.
+- **Dificultad**:
+  - **Fácil**: como normal y, además, **Comprar** (o `C`): el equipo en turno paga 3 monedas y la carta
+    va directa a su línea temporal (solo en línea temporal, antes de comprobar y sin desafíos puestos).
+  - **Normal**: las reglas de siempre.
+  - **Difícil**: no se puede saltar canciones con monedas y, si la carta es del mismo año que otra de
+    la línea, el mes decide si va antes o después (si alguna de las dos no tiene mes, vale a cualquier lado).
+    Las cartas de la línea muestran el mes.
+- **Categorías**: se puede jugar solo con algunos estilos, idiomas o décadas (por defecto, todas).
+  Dentro de cada grupo se pueden marcar varias opciones; el mazo se baraja solo con las canciones que cumplen.
 - Arriba se muestra el equipo en turno y las monedas de cada equipo.
 - Doble toque / doble clic en la carta, botón **Revelar** o `Espacio`: girar la carta.
 - **Siguiente** o `→`: siguiente carta y turno del siguiente equipo.
@@ -43,7 +52,12 @@ build_data.py         Regenera cards.js desde el CSV
 Desde la carpeta del generador:
 
 ```
+python classify_categories.py          # solo si hay cartas nuevas: estilo e idioma -> categorias.csv
 python web/build_data.py --csv cards_with_design_columns.csv
 ```
+
+`classify_categories.py` busca cada artista en MusicBrainz (etiquetas y país) y deduce el estilo y el
+idioma. Las correcciones se hacen a mano en `categorias.csv`; al relanzarlo solo clasifica las cartas
+que aún no estén en el CSV. La década se calcula en la web a partir del año.
 
 Después, commit y push: GitHub Pages publica los cambios en uno o dos minutos.
