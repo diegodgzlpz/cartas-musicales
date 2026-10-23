@@ -10,9 +10,8 @@ Sitio estático, sin servidor: funciona con GitHub Pages o abriendo `index.html`
 
 ```
 index.html            La página (HTML, CSS y JS)
-cards.js              Las 2250 cartas (generado, no editar a mano)
+cards.js              Las cartas (generado, no editar a mano)
 vendor/qrcode.min.js  Generador de QR (qrcode-generator 1.4.4)
-build_data.py         Regenera cards.js desde el CSV
 .nojekyll             Evita que GitHub Pages procese el sitio con Jekyll
 ```
 
@@ -49,15 +48,14 @@ build_data.py         Regenera cards.js desde el CSV
 
 ## Actualizar las cartas
 
-Desde la carpeta del generador:
+`cards.js` se genera desde la carpeta del generador (la de encima de `web/`):
 
 ```
-python classify_categories.py          # solo si hay cartas nuevas: estilo e idioma -> categorias.csv
-python web/build_data.py --csv cards_with_design_columns.csv
+python cartas.py playlist <URL>     # cartas nuevas desde una playlist (luego --apply)
+python cartas.py web                # solo regenerar cards.js
 ```
 
-`classify_categories.py` busca cada artista en MusicBrainz (etiquetas y país) y deduce el estilo y el
-idioma. Las correcciones se hacen a mano en `categorias.csv`; al relanzarlo solo clasifica las cartas
-que aún no estén en el CSV. La década se calcula en la web a partir del año.
+El estilo y el idioma salen de MusicBrainz y se corrigen a mano en `data/categorias_*.csv`;
+la década se calcula en la web a partir del año. Detalles en el README del generador.
 
 Después, commit y push: GitHub Pages publica los cambios en uno o dos minutos.
