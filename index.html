@@ -510,6 +510,152 @@
   .dlg-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
   .dlg-actions .primary { background: var(--accent); color: #0b0b0b; border-color: transparent; font-weight: 700; }
   .dlg-actions .primary:hover { background: #3be477; }
+  .dlg-actions.start { justify-content: flex-start; }
+
+  /* El atributo hidden manda sobre los display de los componentes */
+  [hidden] { display: none !important; }
+
+  /* ---- Reproducir la canción ---- */
+  .play-fab {
+    position: absolute;
+    right: calc(var(--card) * -0.035);
+    bottom: calc(var(--card) * -0.035);
+    z-index: 3;
+    width: 58px;
+    height: 58px;
+    padding: 0;
+    border-radius: 50%;
+    border: 0;
+    background: var(--accent);
+    color: #0b0b0b;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+  .play-fab:hover { background: #3be477; }
+  .play-fab svg { width: 26px; height: 26px; }
+  .play-fab.loading svg { animation: blink 0.8s ease-in-out infinite alternate; }
+  .play-fab.playing::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    animation: ring 1.4s ease-out infinite;
+    pointer-events: none;
+  }
+  @keyframes ring { from { transform: scale(0.9); opacity: 0.9; } to { transform: scale(1.35); opacity: 0; } }
+  @keyframes blink { to { opacity: 0.3; } }
+  .stage.done .play-fab { display: none; }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: max(24px, env(safe-area-inset-bottom));
+    transform: translate(-50%, 20px);
+    z-index: 10;
+    max-width: min(92vw, 520px);
+    padding: 12px 18px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: #2a2a2a;
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast.bad { border-color: var(--bad); }
+
+  .dlg-status { margin: -6px 0 0; font-size: 13px; color: var(--muted); min-height: 1.4em; }
+  .dlg-status.bad { color: var(--bad); }
+  .dlg-status.ok { color: var(--accent); }
+  .segmented.wrap { flex-wrap: wrap; border-radius: 18px; }
+  .field.col { flex-direction: column; align-items: flex-start; }
+  .connect-box { display: flex; flex-direction: column; gap: 14px; }
+  .opts .dev-type { font-weight: 400; opacity: 0.7; }
+  .link-btn { padding: 2px 8px; font-size: 12px; margin-left: 6px; }
+  .cats input[type="text"] {
+    width: 100%;
+    font: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--btn);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px 11px;
+  }
+  .cats code { font-size: 12px; word-break: break-all; color: var(--ink); }
+  .pair-qr { width: min(60vw, 240px); margin: 0 auto; border-radius: 12px; overflow: hidden; background: #fff; }
+  .pair-qr svg { display: block; width: 100%; height: auto; }
+  .pair-qr:empty { display: none; }
+
+  /* ---- Modo TV: pantalla grande, mando a distancia ---- */
+  .tv-keys { display: none; }
+  body.tv {
+    --card: max(160px, min(calc(100dvh - 17vh), 42vw));
+    grid-template-columns: var(--card) minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    column-gap: 4vw;
+    padding: 4vh 5vw;              /* zona segura: algunas TV recortan los bordes */
+  }
+  body.tv header { grid-column: 1 / -1; padding: 0 0 2vh; }
+  body.tv main { grid-column: 1; grid-row: 2 / 4; padding: 0; }
+  body.tv .turn { grid-column: 2; grid-row: 2; padding: 0; gap: 1.4vh; }
+  body.tv footer { grid-column: 2; grid-row: 3; justify-content: center; padding: 0; gap: 2.2vh; }
+  body.tv .brand { font-size: 3.4vh; }
+  body.tv .counter { font-size: 2.8vh; }
+  body.tv button { font-size: 3vh; padding: 1.8vh 2.6vh; }
+  body.tv button svg { width: 3.4vh; height: 3.4vh; }
+  body.tv .icon-btn { padding: 1.2vh; }
+  body.tv .turn-title { font-size: 5.2vh; }
+  body.tv .teams { max-width: none; gap: 1vh; }
+  body.tv .chip { font-size: 2.6vh; padding: 0.7vh 1.6vh 0.7vh 1.2vh; gap: 1vh; }
+  body.tv .chip .swatch { width: 1.6vh; height: 1.6vh; }
+  body.tv .coin-icon, body.tv .chip .cards-count svg { width: 2.4vh; height: 2.4vh; }
+  body.tv .skip-note { font-size: 2.8vh; min-height: 3.4vh; text-align: center; }
+  body.tv .timeline-wrap { width: 100%; }
+  body.tv .timeline { gap: 0.8vh; padding: 1.6vh 1.2vh; }
+  body.tv .mini { width: 11vh; height: 11vh; font-size: 1.7vh; border-radius: 1.4vh; }
+  body.tv .mini b { font-size: 3.4vh; }
+  body.tv .mini small { font-size: 1.7vh; }
+  body.tv .slot { width: 4.6vh; height: 11vh; padding: 0; font-size: 3vh; border-radius: 1.4vh; }
+  body.tv .slot.selected { width: 11vh; font-size: 4.6vh; }
+  body.tv .slot.token { width: 6.4vh; }
+  body.tv .slot.token svg { width: 3vh; height: 3vh; }
+  body.tv .timeline-empty { font-size: 2.6vh; }
+  body.tv .challenge-bar { font-size: 2.4vh; min-height: 6vh; gap: 1vh; }
+  body.tv .challenge-bar button { font-size: 2.4vh; padding: 0.8vh 1.6vh; }
+  body.tv .controls, body.tv.easy .controls { width: 100%; gap: 1.4vh; }
+  body.tv .controls button { padding: 2.2vh 1.4vh; white-space: normal; min-width: 0; }
+  body.tv .controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body.tv.hard .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.tv.easy .controls { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  body.tv .label-long { display: none; }
+  body.tv .hint { font-size: 2.3vh; }
+  body.tv .hint .touch, body.tv .hint .keys { display: none; }
+  body.tv .tv-keys { display: inline; }
+  body.tv .play-fab { width: 10vh; height: 10vh; padding: 0; }
+  body.tv .play-fab svg { width: 4.6vh; height: 4.6vh; }
+  body.tv .finished h2 { font-size: 4vh; }
+  body.tv .finished p { font-size: 2.6vh; }
+  body.tv .toast { font-size: 2.8vh; padding: 2vh 3vh; bottom: 6vh; max-width: 70vw; }
+  body.tv dialog { zoom: 1.3; width: min(68vw, 480px); max-height: 70vh; }
+
+  /* Foco muy visible para manejar todo con las flechas del mando */
+  body.tv :focus { outline: none; }
+  body.tv button:focus, body.tv input:focus, body.tv summary:focus {
+    outline: 0.5vh solid #fff;
+    outline-offset: 0.35vh;
+    box-shadow: 0 0 0 1.3vh color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  body.tv .controls button:focus, body.tv .play-fab:focus { transform: scale(1.06); }
+  body.tv .card:focus .face { box-shadow: 0 0 0 0.8vh #fff, 0 24px 60px rgba(0, 0, 0, 0.55); }
+
+  @media (max-width: 400px) {
+    .brand { display: none; }
+  }
 
   @media (max-width: 480px) {
     .label-long { display: none; }
@@ -549,6 +695,9 @@
       <button class="icon-btn" id="shuffleBtn" title="Barajar de nuevo" aria-label="Barajar de nuevo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
       </button>
+      <button class="icon-btn" id="settingsBtn" title="Reproducción y modo TV" aria-label="Reproducción y modo TV">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8"/><path d="m10 8.5 4.5 2-4.5 2z" fill="currentColor"/></svg>
+      </button>
       <button class="icon-btn" id="fullscreenBtn" title="Pantalla completa" aria-label="Pantalla completa">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5"/><path d="M16 3h5v5"/><path d="M8 21H3v-5"/><path d="M16 21h5v-5"/></svg>
       </button>
@@ -574,6 +723,7 @@
         <p>Has jugado todas las cartas.</p>
         <button id="restartBtn">Barajar de nuevo</button>
       </div>
+      <button class="play-fab" id="playBtn" title="Reproducir la canción (P)" aria-label="Reproducir canción"></button>
     </div>
   </main>
 
@@ -600,8 +750,65 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
       </button>
     </div>
-    <p class="hint">Doble toque en la carta para darle la vuelta<span class="keys"> · <kbd>Espacio</kbd> girar<span id="hintSkip"> · <kbd>S</kbd> saltar</span><span id="hintBuy" hidden> · <kbd>C</kbd> comprar</span> · <kbd>→</kbd> siguiente</span></p>
+    <p class="hint"><span class="touch">Doble toque en la carta para darle la vuelta</span><span class="keys"> · <kbd>Espacio</kbd> girar<span id="hintSkip"> · <kbd>S</kbd> saltar</span><span id="hintBuy" hidden> · <kbd>C</kbd> comprar</span> · <kbd>P</kbd> reproducir · <kbd>→</kbd> siguiente</span><span class="tv-keys">Flechas: moverse · OK: pulsar · OK en la carta o ⏯: reproducir · Atrás: cerrar</span></p>
   </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Reproducción y modo TV -->
+  <dialog id="settingsDlg">
+    <form method="dialog" class="dlg">
+      <h2>Reproducción y TV</h2>
+      <label class="check"><input type="checkbox" id="tvChk"> Modo TV: pantalla grande y manejo con el mando</label>
+      <div class="field col">
+        <label>Al pulsar ▶ o la carta</label>
+        <div class="segmented wrap" id="playMethodSeg">
+          <button type="button" data-method="none">Solo QR</button>
+          <button type="button" data-method="app">Mi app (Android)</button>
+          <button type="button" data-method="connect">Spotify Connect</button>
+        </div>
+      </div>
+      <p class="mode-help" id="playHelp"></p>
+      <div class="connect-box" id="connectBox">
+        <div class="field"><label>Cuenta de Spotify</label><span class="mode-help" id="spotifyStatus" style="margin:0"></span></div>
+        <div class="dlg-actions start">
+          <button type="button" id="loginBtn">Iniciar sesión aquí</button>
+          <button type="button" id="pairBtn">Iniciar sesión con el móvil</button>
+          <button type="button" id="logoutBtn">Cerrar sesión</button>
+        </div>
+        <div class="cat-group" id="devicesBox">
+          <div>Dónde suena <button type="button" class="link-btn" id="devicesRefresh">Actualizar</button></div>
+          <div class="opts" id="deviceOpts"></div>
+        </div>
+        <label class="check" id="autoplayRow"><input type="checkbox" id="autoplayChk"> Que suene sola al sacar cada carta</label>
+        <details class="cats">
+          <summary>Configuración de Spotify</summary>
+          <div class="cats-body">
+            <p class="mode-help" style="margin:0">Client ID de tu app en developer.spotify.com. En su configuración añade esta Redirect URI y marca «Web API»: <code id="redirectUri"></code></p>
+            <input type="text" id="clientIdInput" spellcheck="false" autocomplete="off" aria-label="Client ID de Spotify">
+          </div>
+        </details>
+      </div>
+      <p class="dlg-status" id="settingsStatus" data-status></p>
+      <div class="dlg-actions">
+        <button type="submit" class="primary">Listo</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Vincular la TV con el móvil para iniciar sesión en Spotify -->
+  <dialog id="pairDlg">
+    <form method="dialog" class="dlg win">
+      <h2 id="pairTitle">Iniciar sesión con el móvil</h2>
+      <div class="pair-qr" id="pairQr"></div>
+      <p class="sub" id="pairText" style="margin:0"></p>
+      <p class="dlg-status" id="pairStatus" data-status></p>
+      <div class="dlg-actions">
+        <button type="submit" id="pairClose">Cerrar</button>
+        <button type="button" class="primary" id="pairAction" hidden></button>
+      </div>
+    </form>
+  </dialog>
 
   <!-- Configuración de la partida -->
   <dialog id="setupDlg">
@@ -1224,6 +1431,7 @@
     stage.classList.toggle("done", !card);
     counter.innerHTML = `Carta <b>${Math.min(deck.pos + 1, deck.order.length)}</b> / ${deck.order.length}`;
     renderTurn();
+    renderPlayBtn();
     if (!card) { renderControls(); return; }
 
     faceQr.replaceChildren(renderQrFace(card));
@@ -1268,6 +1476,7 @@
     saveGame();
     renderTurn();
     setFlipped(true);
+    focusSoon($("nextBtn"));
 
     checkWin(ok ? team : thief != null ? game.teams[thief] : null);
   }
@@ -1297,6 +1506,7 @@
     saveGame();
     renderTurn();
     setFlipped(true);
+    focusSoon($("nextBtn"));
     checkWin(team);
   }
 
@@ -1328,6 +1538,7 @@
     saveGame();
     renderTurn();
     setFlipped(true);
+    focusSoon($("nextBtn"));
   }
 
   // En línea temporal no se pasa turno sin colocar y comprobar la carta (o saltarla con moneda)
@@ -1358,6 +1569,7 @@
       setFlipped(false, false);
       render();
       if (!keepTurn) renderTurn(true);
+      onCardChanged();
       stage.classList.add("entering");
       setTimeout(() => { stage.classList.remove("entering"); busy = false; }, 500);
     };
@@ -1377,6 +1589,7 @@
     }
     setFlipped(false, false);
     render();
+    onCardChanged();
   }
 
   // ---- Diálogo: nueva partida ----
@@ -1521,6 +1734,7 @@
     setFlipped(false, false);
     render();
     renderTurn(true);
+    onCardChanged();
   });
 
   // ---- Diálogo: monedas ----
@@ -1557,19 +1771,628 @@
   $("newGameBtn").addEventListener("click", openSetup);
   $("winNewGame").addEventListener("click", () => { $("winDlg").close(); openSetup(); });
 
+  // ---- Avisos ----
+  // Con un diálogo abierto el aviso va dentro de él (el toast quedaría detrás del fondo del diálogo)
+  let toastTimer = 0;
+  function notify(message, kind = "") {
+    const dlg = openDialog();
+    const box = dlg && dlg.querySelector("[data-status]");
+    if (box) {
+      box.textContent = message;
+      box.className = `dlg-status${kind ? " " + kind : ""}`;
+      return;
+    }
+    const t = $("toast");
+    t.textContent = message;
+    t.className = `toast show${kind ? " " + kind : ""}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), kind === "bad" ? 6000 : 3500);
+  }
+
+  // ---- Reproducir la canción ----
+  // Métodos: "none" (solo QR), "app" (abre la app SpotifyQR de Android), "connect" (Spotify Web API en
+  // cualquier dispositivo con Spotify de la cuenta). Sin elegir todavía (null): el botón abre los ajustes.
+  const PLAY_KEY = "music-cards.play.v1";
+  const AUTH_KEY = "music-cards.spotify.v1";
+  const PKCE_KEY = "music-cards.pkce.v1";
+  const DEFAULT_CLIENT_ID = "8c3b5fcb3cca4d69abe0822f6b7d282d"; // la misma app de Spotify que SpotifyQR
+  const SPOTIFY_SCOPES = "user-modify-playback-state user-read-playback-state";
+  const API = "https://api.spotify.com/v1";
+  const APP_PACKAGE = "com.personal.spotifyqr";
+  const NTFY = "https://ntfy.sh";
+  const PLAY_ICON = `<svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>`;
+  const PAUSE_ICON = `<svg viewBox="0 0 24 24"><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z" fill="currentColor"/></svg>`;
+  const PLAY_HELP = {
+    none: "Sin botón de reproducir: escanead el QR de la carta con el móvil.",
+    app: "Abre tu app SpotifyQR en este móvil Android y la canción suena sin mostrar el título. Solo sirve en el móvil donde está instalada la app.",
+    connect: "La canción suena en cualquier Spotify de tu cuenta (la app de la TV, el móvil, un altavoz…) sin mostrar el título. Necesita Spotify Premium. Es la opción para jugar en la TV.",
+  };
+
+  const playCfg = { method: null, device: null, autoplay: false, clientId: DEFAULT_CLIENT_ID, ...(load(PLAY_KEY) || {}) };
+  const savePlayCfg = () => save(PLAY_KEY, playCfg);
+  let auth = load(AUTH_KEY);          // { access, refresh, expires, clientId }
+  let playing = { id: null, state: "idle" }; // state: idle | loading | playing | paused
+  let devices = null;                 // dispositivos de Spotify Connect (null = sin cargar)
+
+  function setAuth(value) {
+    auth = value;
+    if (value) save(AUTH_KEY, value);
+    else try { localStorage.removeItem(AUTH_KEY); } catch (_) { /* sin almacenamiento */ }
+  }
+
+  const trackId = (card) => (/track\/([A-Za-z0-9]+)/.exec(card.spotify_url) || [])[1] || "";
+  const canTapPlay = () => playCfg.method === "app" || playCfg.method === "connect";
+
+  function setPlayState(id, state) {
+    playing = { id, state };
+    renderPlayBtn();
+  }
+
+  function renderPlayBtn() {
+    const btn = $("playBtn");
+    const card = currentCard();
+    btn.hidden = !card || playCfg.method === "none";
+    const state = card && playing.id === card.id ? playing.state : "idle";
+    btn.classList.toggle("playing", state === "playing");
+    btn.classList.toggle("loading", state === "loading");
+    btn.innerHTML = state === "playing" ? PAUSE_ICON : PLAY_ICON;
+    btn.setAttribute("aria-label", state === "playing" ? "Pausar canción" : "Reproducir canción");
+  }
+
+  function togglePlay() {
+    const card = currentCard();
+    if (!card) return;
+    if (!playCfg.method) { openSettings(); notify("Elige cómo quieres que suene la canción."); return; }
+    if (playCfg.method === "app") return openInApp(card);
+    if (playCfg.method !== "connect") return;
+    if (!auth) { openSettings(); notify("Inicia sesión en Spotify para reproducir.", "bad"); return; }
+    if (playing.id === card.id && playing.state === "loading") return;
+    if (playing.id === card.id && playing.state === "playing") return spotifyPause();
+    if (playing.id === card.id && playing.state === "paused") return spotifyPlay(card, true);
+    return spotifyPlay(card);
+  }
+
+  // Abre SpotifyQR con spqrplayer://play?track=ID (en Android con intent:// para ir directo a la app)
+  function openInApp(card) {
+    const id = trackId(card);
+    location.href = /Android/i.test(navigator.userAgent)
+      ? `intent://play?track=${id}#Intent;scheme=spqrplayer;package=${APP_PACKAGE};end`
+      : `spqrplayer://play?track=${id}`;
+  }
+
+  // Al cambiar de carta: suena la nueva (si está activado) o se para la anterior
+  function onCardChanged() {
+    const was = playing;
+    setPlayState(null, "idle");
+    if (playCfg.method !== "connect" || !auth) return;
+    const card = currentCard();
+    if (playCfg.autoplay && card) spotifyPlay(card);
+    else if (was.state === "playing" || was.state === "loading") spotifyPause(true);
+  }
+
+  // ---- Spotify Web API (OAuth PKCE, sin servidor) ----
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const unb64u = (s) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
+  const randomString = (bytes) => b64u(crypto.getRandomValues(new Uint8Array(bytes)));
+  const redirectUri = () => location.origin + location.pathname.replace(/index\.html$/, "");
+  const playError = (code, message = code) => Object.assign(new Error(message), { code });
+
+  async function spotifyLogin(pair = null) {
+    if (!/^https?:$/.test(location.protocol) || !window.crypto || !crypto.subtle) {
+      notify("Para iniciar sesión abre la web desde su dirección https (GitHub Pages), no como archivo.", "bad");
+      return;
+    }
+    const clientId = playCfg.clientId || DEFAULT_CLIENT_ID;
+    const verifier = randomString(48);
+    const challenge = b64u(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)));
+    const state = randomString(12);
+    save(PKCE_KEY, { verifier, state, clientId, pair });
+    location.assign("https://accounts.spotify.com/authorize?" + new URLSearchParams({
+      client_id: clientId,
+      response_type: "code",
+      redirect_uri: redirectUri(),
+      code_challenge_method: "S256",
+      code_challenge: challenge,
+      scope: SPOTIFY_SCOPES,
+      state,
+    }));
+  }
+
+  async function tokenRequest(clientId, params) {
+    const r = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ client_id: clientId, ...params }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw Object.assign(new Error(j.error_description || j.error || `HTTP ${r.status}`), { status: r.status });
+    return { access: j.access_token, refresh: j.refresh_token, expires: Date.now() + ((j.expires_in || 3600) - 60) * 1000, clientId };
+  }
+
+  let refreshing = null;
+  function accessToken() {
+    if (!auth) return Promise.reject(playError("auth"));
+    if (auth.access && Date.now() < auth.expires) return Promise.resolve(auth.access);
+    refreshing = refreshing || tokenRequest(auth.clientId, { grant_type: "refresh_token", refresh_token: auth.refresh })
+      .then((t) => { setAuth({ ...t, refresh: t.refresh || auth.refresh }); return auth.access; })
+      .catch((e) => {
+        if (e.status === 400 || e.status === 401) { setAuth(null); throw playError("auth"); }
+        throw playError("network");
+      })
+      .finally(() => { refreshing = null; });
+    return refreshing;
+  }
+
+  async function spotifyApi(path, opts = {}, retry = true) {
+    const token = await accessToken();
+    let r;
+    try {
+      r = await fetch(API + path, {
+        ...opts,
+        headers: { Authorization: `Bearer ${token}`, ...(opts.body ? { "Content-Type": "application/json" } : {}) },
+      });
+    } catch (_) { throw playError("network"); }
+    if (r.status === 401 && retry) {
+      auth.expires = 0;
+      return spotifyApi(path, opts, false);
+    }
+    return r;
+  }
+
+  async function apiError(r) {
+    const j = await r.json().catch(() => ({}));
+    const reason = (j.error && j.error.reason) || "";
+    if (reason === "PREMIUM_REQUIRED") return playError("premium");
+    if (reason === "NO_ACTIVE_DEVICE" || r.status === 404) return playError("nodevice");
+    if (r.status === 403) return playError("forbidden");
+    if (r.status === 429) return playError("ratelimit");
+    return playError("api", (j.error && j.error.message) || `HTTP ${r.status}`);
+  }
+
+  async function spotifyDevices() {
+    const r = await spotifyApi("/me/player/devices");
+    if (!r.ok) throw await apiError(r);
+    const j = await r.json();
+    return (j.devices || []).filter((d) => d.id && !d.is_restricted);
+  }
+
+  // Reproduce en el dispositivo elegido. Si está dormido o no hay ninguno activo, se le pasa la
+  // reproducción (transfer) y se reintenta: así basta con tener la app de Spotify abierta.
+  async function playOn(device, body) {
+    const play = (id) => spotifyApi(`/me/player/play${id ? `?device_id=${encodeURIComponent(id)}` : ""}`,
+      { method: "PUT", body: body ? JSON.stringify(body) : undefined });
+    let r = await play(device);
+    if (r.status === 404 || r.status === 502) {
+      const list = await spotifyDevices();
+      devices = list;
+      const target = list.find((d) => d.id === device) || (!device && (list.find((d) => d.is_active) || list[0]));
+      if (!target) throw playError("nodevice");
+      await spotifyApi("/me/player", { method: "PUT", body: JSON.stringify({ device_ids: [target.id], play: false }) });
+      await sleep(500);
+      r = await play(target.id);
+    }
+    if (!r.ok) throw await apiError(r);
+  }
+
+  async function spotifyPlay(card, resume = false) {
+    setPlayState(card.id, "loading");
+    try {
+      await playOn(playCfg.device, resume ? null : { uris: [`spotify:track:${trackId(card)}`] });
+      if (playing.id === card.id) setPlayState(card.id, "playing");
+    } catch (e) {
+      if (playing.id === card.id) setPlayState(null, "idle");
+      reportPlayError(e);
+    }
+  }
+
+  async function spotifyPause(quiet = false) {
+    const id = playing.id;
+    if (id) setPlayState(id, "paused");
+    try {
+      const dev = playCfg.device ? `?device_id=${encodeURIComponent(playCfg.device)}` : "";
+      const r = await spotifyApi(`/me/player/pause${dev}`, { method: "PUT" });
+      // 403/404: ya estaba en pausa o no hay nada sonando; no es un error para el juego
+      if (!r.ok && r.status !== 403 && r.status !== 404 && !quiet) throw await apiError(r);
+    } catch (e) {
+      if (!quiet) reportPlayError(e);
+    }
+  }
+
+  function reportPlayError(e) {
+    const messages = {
+      auth: "La sesión de Spotify ha caducado: vuelve a iniciar sesión en Reproducción y TV.",
+      nodevice: "No hay ningún Spotify abierto. Abre Spotify en la TV, el móvil o el altavoz y vuelve a pulsar ▶.",
+      premium: "Spotify Connect necesita una cuenta Premium.",
+      forbidden: "Spotify ha rechazado la petición. ¿Está tu usuario añadido en la app de developer.spotify.com?",
+      ratelimit: "Demasiadas peticiones a Spotify: espera unos segundos.",
+      network: "Sin conexión con Spotify.",
+    };
+    notify(messages[e.code] || `Error de Spotify: ${e.message}`, "bad");
+    if (e.code === "auth" && settingsDlg.open) renderSettings();
+  }
+
+  // Vuelta de accounts.spotify.com con ?code=...: se cambia por los tokens. Si el login se hizo
+  // desde el móvil para la TV (pair), los tokens se envían cifrados a la TV y no se guardan aquí.
+  async function handleAuthRedirect() {
+    const p = new URLSearchParams(location.search);
+    if (!p.has("code") && !p.has("error")) return;
+    const saved = load(PKCE_KEY);
+    try { localStorage.removeItem(PKCE_KEY); } catch (_) { /* sin almacenamiento */ }
+    history.replaceState(null, "", redirectUri());
+    if (saved && saved.pair) showPairPhone(saved.pair, "sending");
+    if (!saved || p.get("error") || p.get("state") !== saved.state) {
+      if (saved && saved.pair) return pairPhoneStatus("No se ha podido iniciar sesión en Spotify.", "bad");
+      openSettings();
+      notify(p.get("error") === "access_denied" ? "Inicio de sesión cancelado." : "No se ha podido iniciar sesión en Spotify.", "bad");
+      return;
+    }
+    try {
+      const tok = await tokenRequest(saved.clientId, {
+        grant_type: "authorization_code", code: p.get("code"), redirect_uri: redirectUri(), code_verifier: saved.verifier,
+      });
+      if (saved.pair) {
+        await sendPair(saved.pair, tok);
+        showPairPhone(saved.pair, "done");
+        return;
+      }
+      setAuth(tok);
+      playCfg.method = "connect";
+      savePlayCfg();
+      openSettings();
+      notify("Sesión iniciada. Elige dónde suena la música.", "ok");
+    } catch (e) {
+      if (saved.pair) return pairPhoneStatus("No se ha podido enviar la sesión a la TV. Vuelve a escanear el QR.", "bad");
+      openSettings();
+      notify(`No se ha podido iniciar sesión en Spotify (${e.message}).`, "bad");
+    }
+  }
+
+  // ---- Iniciar sesión en la TV desde el móvil ----
+  // La TV muestra un QR con un canal aleatorio de ntfy.sh y una clave AES en el fragmento (#), que no
+  // sale del móvil. El móvil inicia sesión en Spotify y publica los tokens cifrados en ese canal; la TV,
+  // suscrita, los descifra. ntfy.sh solo ve texto cifrado.
+  const pairDlg = $("pairDlg");
+  let pairSource = null;
+
+  function qrSvg(text) {
+    const q = qrcode(0, "M");
+    q.addData(text);
+    q.make();
+    const n = q.getModuleCount();
+    let d = "";
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c + 3} ${r + 3}h1v1h-1z`;
+    return `<svg viewBox="0 0 ${n + 6} ${n + 6}" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+  }
+
+  const pairKey = (raw, use) => crypto.subtle.importKey("raw", raw, "AES-GCM", false, [use]);
+
+  async function sendPair(pair, tok) {
+    const key = await pairKey(unb64u(pair.key), "encrypt");
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const data = new TextEncoder().encode(JSON.stringify(tok));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, data));
+    const msg = new Uint8Array(iv.length + ct.length);
+    msg.set(iv);
+    msg.set(ct, iv.length);
+    const r = await fetch(`${NTFY}/${pair.topic}`, { method: "POST", body: b64u(msg) });
+    if (!r.ok) throw new Error(`ntfy ${r.status}`);
+  }
+
+  function stopPairing() {
+    if (pairSource) { pairSource.close(); pairSource = null; }
+  }
+
+  // En la TV: muestra el QR y espera la sesión
+  async function openPairTv() {
+    if (!/^https:$/.test(location.protocol) || !crypto.subtle || !window.EventSource) {
+      notify("Esta opción necesita la web publicada en https (GitHub Pages).", "bad");
+      return;
+    }
+    stopPairing();
+    const topic = "cartas-" + randomString(18);
+    const raw = crypto.getRandomValues(new Uint8Array(32));
+    const key = await pairKey(raw, "decrypt");
+    const url = `${redirectUri()}#pair=${topic}.${b64u(raw)}`;
+    $("pairTitle").textContent = "Iniciar sesión con el móvil";
+    $("pairQr").innerHTML = qrSvg(url);
+    $("pairText").textContent = "Escanea el código con la cámara del móvil e inicia sesión en Spotify. Esta pantalla se conectará sola.";
+    $("pairAction").hidden = true;
+    $("pairStatus").textContent = "Esperando al móvil…";
+    $("pairStatus").className = "dlg-status";
+    pairDlg.showModal();
+
+    pairSource = new EventSource(`${NTFY}/${topic}/sse?since=${Math.floor(Date.now() / 1000)}`);
+    pairSource.onmessage = async (ev) => {
+      let msg;
+      try { msg = JSON.parse(ev.data); } catch (_) { return; }
+      if (msg.event !== "message" || !msg.message) return;
+      try {
+        const bytes = unb64u(msg.message.trim());
+        const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: bytes.slice(0, 12) }, key, bytes.slice(12));
+        const tok = JSON.parse(new TextDecoder().decode(plain));
+        if (!tok.refresh || !tok.clientId) return;
+        setAuth(tok);
+        playCfg.method = "connect";
+        savePlayCfg();
+        stopPairing();
+        notify("¡Sesión iniciada en la TV!", "ok");
+        setTimeout(() => {
+          pairDlg.close();
+          openSettings();
+        }, 1200);
+      } catch (_) { /* mensaje que no es nuestro */ }
+    };
+  }
+
+  // En el móvil: viene del QR de la TV (#pair=canal.clave)
+  function readPairLink() {
+    const m = /^#pair=([\w-]+)\.([\w-]+)$/.exec(location.hash);
+    if (!m) return null;
+    history.replaceState(null, "", location.pathname + location.search);
+    return { topic: m[1], key: m[2] };
+  }
+
+  function showPairPhone(pair, step) {
+    $("pairTitle").textContent = "Iniciar sesión para la TV";
+    $("pairQr").innerHTML = "";
+    const action = $("pairAction");
+    action.hidden = step !== "start";
+    action.textContent = "Iniciar sesión en Spotify";
+    action.onclick = () => spotifyLogin(pair);
+    $("pairText").textContent = step === "done"
+      ? "Listo: la TV ya tiene tu sesión de Spotify. Puedes cerrar esta página."
+      : "Inicia sesión en Spotify desde este móvil. La sesión se envía cifrada a la TV y no se guarda en el móvil.";
+    pairPhoneStatus(step === "sending" ? "Enviando la sesión a la TV…" : step === "done" ? "TV conectada ✓" : "", step === "done" ? "ok" : "");
+    if (!pairDlg.open) pairDlg.showModal();
+  }
+
+  function pairPhoneStatus(text, kind = "") {
+    $("pairStatus").textContent = text;
+    $("pairStatus").className = `dlg-status${kind ? " " + kind : ""}`;
+  }
+
+  pairDlg.addEventListener("close", () => {
+    stopPairing();
+    if (settingsDlg.open) renderSettings();
+  });
+
+  // ---- Diálogo: reproducción y TV ----
+  const settingsDlg = $("settingsDlg");
+
+  function openSettings() {
+    renderSettings();
+    if (!settingsDlg.open) settingsDlg.showModal();
+    if (playCfg.method === "connect" && auth) loadDevices();
+  }
+
+  function renderSettings() {
+    const method = playCfg.method || "";
+    $("tvChk").checked = tvOn;
+    $("playMethodSeg").querySelectorAll("[data-method]").forEach((b) => b.classList.toggle("on", b.dataset.method === method));
+    $("playHelp").textContent = PLAY_HELP[method] || "Elige cómo quieres que suene la canción de cada carta.";
+    $("connectBox").hidden = method !== "connect";
+    $("spotifyStatus").textContent = auth ? "Sesión iniciada" : "Sin sesión";
+    $("loginBtn").hidden = !!auth;
+    $("pairBtn").hidden = !!auth;
+    $("logoutBtn").hidden = !auth;
+    $("devicesBox").hidden = !auth;
+    $("autoplayRow").hidden = !auth;
+    $("autoplayChk").checked = !!playCfg.autoplay;
+    $("clientIdInput").value = playCfg.clientId || DEFAULT_CLIENT_ID;
+    $("redirectUri").textContent = redirectUri();
+    renderDevices();
+  }
+
+  const DEVICE_TYPES = { TV: "TV", Smartphone: "móvil", Computer: "ordenador", Speaker: "altavoz", CastVideo: "Chromecast", CastAudio: "Chromecast", AVR: "receptor", Tablet: "tablet" };
+
+  function renderDevices() {
+    const box = $("deviceOpts");
+    if (!auth) { box.innerHTML = ""; return; }
+    if (devices == null) { box.innerHTML = `<span class="mode-help" style="margin:0">Cargando…</span>`; return; }
+    const known = devices.some((d) => d.id === playCfg.device);
+    const savedName = playCfg.device && !known ? playCfg.deviceName : null;
+    box.innerHTML = `<button type="button" class="${playCfg.device ? "" : "on"}" data-device="">Automático</button>`
+      + devices.map((d) => `<button type="button" class="${d.id === playCfg.device ? "on" : ""}" data-device="${escapeHtml(d.id)}">
+          ${escapeHtml(d.name)} <span class="dev-type">${escapeHtml(DEVICE_TYPES[d.type] || (d.type || "").toLowerCase())}</span></button>`).join("")
+      + (savedName ? `<button type="button" class="on" data-device="${escapeHtml(playCfg.device)}">${escapeHtml(savedName)} <span class="dev-type">apagado</span></button>` : "")
+      + (devices.length ? "" : `<p class="mode-help" style="margin:4px 0 0;width:100%">No aparece ningún dispositivo: abre la app de Spotify en la TV, el móvil o el altavoz y pulsa Actualizar.</p>`);
+  }
+
+  async function loadDevices() {
+    devices = null;
+    renderDevices();
+    try {
+      devices = await spotifyDevices();
+    } catch (e) {
+      devices = [];
+      reportPlayError(e);
+    }
+    if (settingsDlg.open) renderSettings();
+  }
+
+  settingsDlg.addEventListener("click", (e) => {
+    const m = e.target.closest("[data-method]");
+    if (m) {
+      playCfg.method = m.dataset.method;
+      savePlayCfg();
+      notify("");
+      openSettings();
+      renderPlayBtn();
+      return;
+    }
+    const d = e.target.closest("[data-device]");
+    if (d) {
+      const dev = devices && devices.find((x) => x.id === d.dataset.device);
+      playCfg.device = d.dataset.device || null;
+      if (dev) playCfg.deviceName = dev.name;
+      savePlayCfg();
+      renderDevices();
+    }
+  });
+  $("tvChk").addEventListener("change", (e) => setTv(e.target.checked));
+  $("autoplayChk").addEventListener("change", (e) => { playCfg.autoplay = e.target.checked; savePlayCfg(); });
+  $("clientIdInput").addEventListener("change", (e) => {
+    playCfg.clientId = e.target.value.trim() || DEFAULT_CLIENT_ID;
+    savePlayCfg();
+  });
+  $("loginBtn").addEventListener("click", () => spotifyLogin());
+  $("pairBtn").addEventListener("click", openPairTv);
+  $("logoutBtn").addEventListener("click", () => {
+    setAuth(null);
+    devices = null;
+    setPlayState(null, "idle");
+    renderSettings();
+    notify("Sesión de Spotify cerrada.");
+  });
+  $("devicesRefresh").addEventListener("click", loadDevices);
+  settingsDlg.addEventListener("close", () => { $("settingsStatus").textContent = ""; renderPlayBtn(); });
+
+  // ---- Modo TV: navegación con las flechas del mando ----
+  const TV_KEY = "music-cards.tv.v1";
+  const TV_UA = /Android ?TV|GoogleTV|AFT[A-Z0-9]|BRAVIA|SMART-?TV|SmartTV|Tizen|Web0S|webOS|HbbTV|CrKey|NetCast|Aquos|VIDAA/i;
+  let tvOn = (() => {
+    const q = new URLSearchParams(location.search).get("tv");
+    if (q === "1" || q === "0") save(TV_KEY, q === "1");
+    const saved = load(TV_KEY);
+    return typeof saved === "boolean" ? saved : TV_UA.test(navigator.userAgent);
+  })();
+
+  function setTv(on) {
+    tvOn = on;
+    save(TV_KEY, on);
+    applyTv();
+  }
+
+  function applyTv() {
+    document.body.classList.toggle("tv", tvOn);
+    if (tvOn && !historyGuard) { history.pushState({ tv: 1 }, ""); historyGuard = true; }
+    if (tvOn && !openDialog()) focusDefault();
+  }
+
+  const openDialog = () => { const d = document.querySelectorAll("dialog[open]"); return d[d.length - 1] || null; };
+
+  function isNavigable(el) {
+    if (!el || el.disabled || !el.getClientRects().length) return false;
+    // El contenido de un <details> cerrado conserva sus cajas en Chrome, pero no se puede enfocar
+    const det = el.closest("details");
+    if (det && !det.open && el !== det.querySelector("summary")) return false;
+    if (el.checkVisibility && !el.checkVisibility({ visibilityProperty: true, contentVisibilityAuto: true })) return false;
+    return getComputedStyle(el).visibility !== "hidden";
+  }
+  const navigables = (root) => [...root.querySelectorAll("button, input, select, textarea, summary, [tabindex]:not([tabindex='-1'])")].filter(isNavigable);
+
+  // Elemento con el foco al entrar en una pantalla: el hueco central para colocar, o la acción principal
+  function defaultFocus() {
+    const dlg = openDialog();
+    if (dlg) return [...dlg.querySelectorAll(".primary")].find(isNavigable) || navigables(dlg)[0];
+    const slots = [...$("timeline").querySelectorAll(".slot")].filter(isNavigable);
+    const options = [
+      placingPhase() && (slots.find((s) => s.classList.contains("selected")) || slots[Math.floor(slots.length / 2)]),
+      $("flipBtn"), $("nextBtn"), $("playBtn"), $("restartBtn"),
+    ];
+    return options.find(isNavigable) || null;
+  }
+
+  function focusDefault() {
+    const el = defaultFocus();
+    if (el) el.focus();
+  }
+
+  function focusSoon(el) {
+    if (tvOn) requestAnimationFrame(() => { if (isNavigable(el) && !openDialog()) el.focus(); });
+  }
+
+  // Distancia al candidato en la dirección pedida: prima lo que está alineado con el elemento actual
+  function navScore(a, b, dir) {
+    const h = dir === "left" || dir === "right";
+    const sign = dir === "right" || dir === "down" ? 1 : -1;
+    const center = (r) => (h ? (r.left + r.right) / 2 : (r.top + r.bottom) / 2);
+    if ((center(b) - center(a)) * sign <= 1) return Infinity;
+    const primary = h ? (sign > 0 ? b.left - a.right : a.left - b.right) : (sign > 0 ? b.top - a.bottom : a.top - b.bottom);
+    const gap = h ? Math.max(a.top, b.top) - Math.min(a.bottom, b.bottom) : Math.max(a.left, b.left) - Math.min(a.right, b.right);
+    const offset = h ? Math.abs((a.top + a.bottom) / 2 - (b.top + b.bottom) / 2) : Math.abs((a.left + a.right) / 2 - (b.left + b.right) / 2);
+    return Math.max(0, primary) + Math.max(0, gap) * 4 + offset * 0.2;
+  }
+
+  function moveFocus(dir) {
+    const root = openDialog() || document;
+    const cur = document.activeElement;
+    const list = navigables(root);
+    if (!cur || cur === document.body || !list.includes(cur)) return focusDefault();
+    const a = cur.getBoundingClientRect();
+    let best = null, bestScore = Infinity;
+    for (const el of list) {
+      if (el === cur) continue;
+      const s = navScore(a, el.getBoundingClientRect(), dir);
+      if (s < bestScore) { bestScore = s; best = el; }
+    }
+    if (best) {
+      best.focus();
+      best.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+  }
+
+  // Al redibujar (línea temporal, diálogos…) los botones se recrean: se devuelve el foco al equivalente
+  let lastFocus = null;
+  function focusSelector(el) {
+    if (!el || el === document.body) return null;
+    if (el.id) return "#" + CSS.escape(el.id);
+    const attrs = Object.keys(el.dataset)
+      .map((k) => `[data-${k.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}="${CSS.escape(el.dataset[k])}"]`).join("");
+    if (!attrs) return null;
+    const cat = el.closest("[data-cat]");
+    return (cat && cat !== el ? `[data-cat="${CSS.escape(cat.dataset.cat)}"] ` : "") + el.tagName.toLowerCase() + attrs;
+  }
+  document.addEventListener("focusin", (e) => { lastFocus = focusSelector(e.target); });
+  new MutationObserver(() => {
+    if (!tvOn) return;
+    if (!historyGuard && openDialog()) { history.pushState({ tv: 1 }, ""); historyGuard = true; }
+    const a = document.activeElement;
+    if (a && a !== document.body && a.isConnected && !a.disabled) return;
+    const root = openDialog() || document;
+    let target = null;
+    try { target = lastFocus && root.querySelector(lastFocus); } catch (_) { /* selector no válido */ }
+    if (isNavigable(target)) target.focus();
+    else focusDefault();
+  }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled", "hidden", "open"] });
+
+  // Al cerrar un diálogo el foco puede quedar en ninguna parte: se lleva a la acción principal
+  document.addEventListener("close", () => {
+    if (tvOn) setTimeout(() => { const a = document.activeElement; if (!a || a === document.body) focusDefault(); }, 0);
+  }, true);
+
+  // Botón Atrás del mando: muchos navegadores de TV lo traducen en "volver" del historial. Se guarda una
+  // entrada de historial para cerrar el diálogo abierto en vez de salir de la web.
+  let historyGuard = false;
+  window.addEventListener("popstate", () => {
+    if (!tvOn) return;
+    const dlg = openDialog();
+    if (!dlg) { historyGuard = false; return; } // sin nada que cerrar: el siguiente Atrás sale de la web
+    if (dlg === setupDlg && !game) { /* sin partida no se puede cerrar */ }
+    else dlg.close();
+    history.pushState({ tv: 1 }, "");
+  });
+
   // ---- Eventos ----
   // Doble toque / doble clic propio (dblclick no es fiable en móviles)
+  // Un toque reproduce la canción (si hay método de reproducción); se espera por si llega el segundo toque
   let lastTap = { t: 0, x: 0, y: 0 };
+  let tapTimer = 0;
   cardEl.addEventListener("pointerup", (e) => {
     const now = performance.now();
     const close = Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 40;
+    clearTimeout(tapTimer);
     if (now - lastTap.t < DOUBLE_TAP_MS && close) {
       lastTap.t = 0;
       flip();
     } else {
       lastTap = { t: now, x: e.clientX, y: e.clientY };
+      if (canTapPlay()) tapTimer = setTimeout(togglePlay, DOUBLE_TAP_MS);
     }
   });
+  $("playBtn").addEventListener("click", togglePlay);
+  $("settingsBtn").addEventListener("click", openSettings);
   cardEl.addEventListener("dblclick", (e) => e.preventDefault());
 
   $("challengeBar").addEventListener("click", (e) => {
@@ -1593,8 +2416,24 @@
     else document.documentElement.requestFullscreen?.().catch(() => {});
   });
 
+  const NAV_KEYS = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
   document.addEventListener("keydown", (e) => {
-    if (document.querySelector("dialog[open]")) return;
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
+    // Modo TV: las flechas mueven el foco (en un campo de texto, izquierda/derecha mueven el cursor)
+    if (tvOn && NAV_KEYS[e.key] && !(typing && (e.key === "ArrowLeft" || e.key === "ArrowRight"))) {
+      e.preventDefault();
+      moveFocus(NAV_KEYS[e.key]);
+      return;
+    }
+    if (document.querySelector("dialog[open]") || typing) return;
+    // Teclas multimedia del mando
+    if (e.key === "MediaPlayPause" || e.key === "MediaPlay" || e.key === "MediaPause" || e.key.toLowerCase() === "p") {
+      e.preventDefault();
+      return togglePlay();
+    }
+    if (e.key === "MediaTrackNext" || e.key === "MediaFastForward") { e.preventDefault(); return next(); }
+    // OK sobre la carta: reproduce si hay método de reproducción; si no, la gira
+    if (e.target === cardEl && e.key === "Enter") { e.preventDefault(); return canTapPlay() ? togglePlay() : flip(); }
     if (e.target.tagName === "BUTTON" && (e.key === " " || e.key === "Enter")) return;
     if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
     else if (e.key === "ArrowRight" || e.key.toLowerCase() === "n") { e.preventDefault(); next(); }
@@ -1618,7 +2457,13 @@
   render();
   // Si se recarga con la carta ya comprobada o saltada, se muestra revelada
   if (game && (game.skipped || game.result)) setFlipped(true, false);
-  if (!game) openSetup();
+  applyTv();
+  // Móvil que viene del QR de la TV o vuelve de iniciar sesión en Spotify para la TV: no se abre la partida
+  const pairLink = readPairLink();
+  const pairReturn = new URLSearchParams(location.search).has("code") && !!(load(PKCE_KEY) || {}).pair;
+  if (pairLink) showPairPhone(pairLink, "start");
+  else if (!game && !pairReturn) openSetup();
+  handleAuthRedirect();
 })();
 </script>
 </body>

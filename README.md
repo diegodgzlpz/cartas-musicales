@@ -46,6 +46,45 @@ vendor/qrcode.min.js  Generador de QR (qrcode-generator 1.4.4)
 - Tocando la fila de equipos se suman o restan monedas (aciertos, desafíos) o se empieza otra partida.
 - El mazo se baraja sin repeticiones; la partida y el progreso se guardan en el navegador.
 
+## Reproducir la canción sin escanear
+
+En el botón de la pantalla (icono de TV, arriba) se elige qué pasa al pulsar ▶ (o tocar la carta una vez, o OK
+sobre la carta con el mando, o `P` / ⏯):
+
+- **Solo QR**: sin botón; se escanea el QR como siempre.
+- **Mi app (Android)**: abre la app SpotifyQR con `spqrplayer://play?track=ID`; suena sin mostrar el título y
+  vuelve sola al navegador. Solo en el móvil donde está instalada la app.
+- **Spotify Connect**: la web manda la canción a cualquier Spotify de la cuenta (app de la TV, móvil, altavoz…)
+  con la Web API. Necesita Premium. Opción para jugar en la TV. Se puede hacer que suene sola al sacar cada carta;
+  al pasar de carta se para la anterior.
+
+Configuración en [developer.spotify.com](https://developer.spotify.com/dashboard) (una vez), en la app de Spotify
+que usa SpotifyQR (Client ID `8c3b5fcb…`, se puede cambiar en los ajustes):
+
+1. En *Redirect URIs* añade `https://diegodgzlpz.github.io/cartas-musicales/`
+   (y `http://127.0.0.1:8000/` si pruebas en local con `python -m http.server 8000`).
+2. En *APIs used* marca **Web API**.
+3. En *User Management* añade el correo de cada cuenta que vaya a iniciar sesión (modo desarrollo).
+
+Inicio de sesión en la TV: **Iniciar sesión aquí** (con el teclado del mando) o **Iniciar sesión con el móvil**:
+la TV muestra un QR, se escanea con el móvil y se inicia sesión allí. La sesión viaja cifrada (AES-GCM, clave solo
+en el QR) por un canal aleatorio de [ntfy.sh](https://ntfy.sh); el móvil no la guarda.
+
+## Jugar en la TV
+
+Abre `https://diegodgzlpz.github.io/cartas-musicales/` en el navegador de la TV. El modo TV se activa solo en
+Android TV / Google TV, Fire TV, Samsung (Tizen) y LG (webOS); también con `?tv=1` o en los ajustes.
+
+- Pantalla apaisada: carta a la izquierda, equipos, línea temporal y botones a la derecha, con margen para
+  las TV que recortan los bordes.
+- Mando: flechas para moverse, OK para pulsar, OK sobre la carta o ⏯ para reproducir, ⏭ siguiente carta,
+  Atrás cierra el diálogo abierto.
+- Dispositivos: Android TV y Chromecast con Google TV necesitan un navegador (TV Bro, Puffin TV, Firefox…);
+  Fire TV trae Silk; Samsung y LG su navegador. Un Chromecast antiguo (sin mando) solo puede recibir la pestaña
+  enviada desde Chrome del ordenador o el móvil («Enviar…»), y se maneja desde ahí.
+- Para que suene: Spotify Connect con la app de Spotify de la TV abierta (sigue sonando en segundo plano en
+  Android TV) o con el móvil o un altavoz como dispositivo.
+
 ## Actualizar las cartas
 
 `cards.js` se genera desde la carpeta del generador (la de encima de `web/`):
