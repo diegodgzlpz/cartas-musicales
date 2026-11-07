@@ -22,9 +22,12 @@
     --bad: #ff5c5c;
   }
   /* Tamaño de carta en body para que use el --tl (alto de la línea temporal) del modo activo */
+  /* Alto de pantalla: dvh donde existe; vh en navegadores antiguos (TV) */
+  :root { --vh100: 100vh; }
+  @supports (height: 1dvh) { :root { --vh100: 100dvh; } }
   body {
     --tl: 0px;
-    --card: max(200px, min(88vw, calc(100dvh - 330px - var(--tl)), 560px));
+    --card: max(200px, min(88vw, calc(var(--vh100) - 330px - var(--tl)), 560px));
   }
   body.timeline-mode { --tl: 92px; }
   body.timeline-mode.multi { --tl: 128px; }
@@ -40,7 +43,8 @@
     display: grid;
     grid-template-rows: auto auto 1fr auto;
     grid-template-columns: minmax(0, 1fr); /* las barras con scroll no ensanchan la página */
-    min-height: 100dvh;
+    min-height: 100vh;
+    min-height: var(--vh100);
     overflow: hidden;
     -webkit-user-select: none;
     user-select: none;
@@ -51,7 +55,7 @@
   body::before {
     content: "";
     position: fixed;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0;
     background: radial-gradient(60% 50% at 50% 55%, var(--glow), transparent 70%);
     opacity: 0;
     transition: opacity 600ms ease, background 600ms ease;
@@ -118,7 +122,7 @@
     min-height: 1.3em;
   }
   .turn-title small { font-size: 0.6em; font-weight: 400; color: var(--muted); }
-  .turn-title .dot { width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--team); box-shadow: 0 0 0 4px color-mix(in srgb, var(--team) 25%, transparent); }
+  .turn-title .dot { width: 0.55em; height: 0.55em; border-radius: 50%; background: var(--team); box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.15); box-shadow: 0 0 0 4px color-mix(in srgb, var(--team) 25%, transparent); }
   .turn-title.pop { animation: pop 450ms cubic-bezier(0.2, 0.9, 0.3, 1.3); }
   @keyframes pop { from { transform: scale(0.8); opacity: 0; } }
 
@@ -147,7 +151,7 @@
     transition: background 250ms ease, color 250ms ease, border-color 250ms ease;
   }
   .chip .swatch { width: 9px; height: 9px; border-radius: 50%; flex: none; }
-  .chip.active { color: var(--ink); border-color: var(--team); background: color-mix(in srgb, var(--team) 18%, transparent); }
+  .chip.active { color: var(--ink); border-color: var(--team); background: rgba(255, 255, 255, 0.1); background: color-mix(in srgb, var(--team) 18%, transparent); }
   .coins { display: inline-flex; align-items: center; gap: 3px; font-variant-numeric: tabular-nums; color: var(--coin); font-weight: 700; }
   .coin-icon { width: 13px; height: 13px; flex: none; }
 
@@ -175,13 +179,14 @@
   .timeline {
     display: flex;
     align-items: center;
-    justify-content: safe center;
     gap: 4px;
     overflow-x: auto;
     padding: 6px 4px;
     scrollbar-width: thin;
     scrollbar-color: var(--line) transparent;
   }
+  .timeline > :first-child, .challenge-bar > :first-child { margin-left: auto; }
+  .timeline > :last-child, .challenge-bar > :last-child { margin-right: auto; }
   .mini {
     flex: none;
     width: 60px;
@@ -229,6 +234,7 @@
   .slot.selected {
     width: 60px;
     border: 2px solid var(--team);
+    background: rgba(255, 255, 255, 0.12);
     background: color-mix(in srgb, var(--team) 22%, transparent);
     color: var(--ink);
     font-size: 24px;
@@ -240,6 +246,7 @@
   .slot.token {
     width: 34px;
     border: 2px solid var(--tok);
+    background: rgba(255, 255, 255, 0.12);
     background: color-mix(in srgb, var(--tok) 25%, transparent);
     color: var(--coin);
   }
@@ -251,7 +258,6 @@
   .challenge-bar {
     display: none;
     align-items: center;
-    justify-content: safe center;
     gap: 6px;
     min-height: 32px;
     overflow-x: auto;
@@ -270,7 +276,7 @@
     color: var(--muted);
   }
   .challenge-bar button .swatch { width: 9px; height: 9px; border-radius: 50%; }
-  .challenge-bar button.picking { color: var(--ink); border-color: var(--pick); background: color-mix(in srgb, var(--pick) 22%, transparent); }
+  .challenge-bar button.picking { color: var(--ink); border-color: var(--pick); background: rgba(255, 255, 255, 0.12); background: color-mix(in srgb, var(--pick) 22%, transparent); }
   .challenge-bar button.placed { color: var(--ink); border-color: var(--coin); }
 
   .segmented { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--btn); border: 1px solid var(--line); }
@@ -328,7 +334,7 @@
 
   .card {
     position: absolute;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0;
     transform-style: preserve-3d;
     transition: transform 700ms cubic-bezier(0.3, 0.7, 0.2, 1);
     cursor: pointer;
@@ -339,7 +345,7 @@
 
   .face {
     position: absolute;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0;
     border-radius: 4.6%;
     overflow: hidden;
     backface-visibility: hidden;
@@ -371,7 +377,7 @@
   .stage.leaving .card-wrap { animation: leave 380ms cubic-bezier(0.5, 0, 0.75, 0) forwards; }
   .stage.leaving.keep .card-wrap { animation-name: discard; }
   .stage.entering .card-wrap { animation: enter 480ms cubic-bezier(0.2, 0.8, 0.3, 1); }
-  .card-wrap { position: absolute; inset: 0; }
+  .card-wrap { position: absolute; top: 0; right: 0; bottom: 0; left: 0; }
 
   @keyframes leave {
     to { transform: translateX(-130%) rotate(-12deg); opacity: 0; }
@@ -386,7 +392,7 @@
 
   .finished {
     position: absolute;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0;
     display: none;
     flex-direction: column;
     align-items: center;
@@ -447,6 +453,7 @@
   /* ---- Diálogos ---- */
   dialog {
     width: min(92vw, 440px);
+    max-height: 88vh;
     max-height: 88dvh;
     padding: 0;
     border: 1px solid var(--line);
@@ -472,7 +479,7 @@
   .stepper button { width: 38px; height: 38px; padding: 0; font-size: 20px; line-height: 1; }
   .stepper output { min-width: 32px; text-align: center; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
 
-  .names { display: flex; flex-direction: column; gap: 8px; max-height: 40dvh; overflow-y: auto; }
+  .names { display: flex; flex-direction: column; gap: 8px; max-height: 40vh; max-height: 40dvh; overflow-y: auto; }
   .name-row { display: flex; align-items: center; gap: 10px; }
   .name-row .swatch { width: 14px; height: 14px; border-radius: 50%; flex: none; }
   .name-row input {
@@ -491,7 +498,7 @@
   .check { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
   .check input { width: 18px; height: 18px; accent-color: var(--accent); }
 
-  .score-rows { display: flex; flex-direction: column; gap: 6px; max-height: 50dvh; overflow-y: auto; }
+  .score-rows { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; max-height: 50dvh; overflow-y: auto; }
   .score-row {
     display: flex;
     align-items: center;
@@ -536,7 +543,7 @@
   .play-fab.playing::after {
     content: "";
     position: absolute;
-    inset: -6px;
+    top: -6px; right: -6px; bottom: -6px; left: -6px;
     border-radius: 50%;
     border: 2px solid var(--accent);
     animation: ring 1.4s ease-out infinite;
@@ -594,7 +601,7 @@
   /* ---- Modo TV: pantalla grande, mando a distancia ---- */
   .tv-keys { display: none; }
   body.tv {
-    --card: max(160px, min(calc(100dvh - 17vh), 42vw));
+    --card: max(160px, min(83vh, 42vw));
     grid-template-columns: var(--card) minmax(0, 1fr);
     grid-template-rows: auto auto minmax(0, 1fr);
     column-gap: 4vw;
@@ -648,7 +655,7 @@
   body.tv button:focus, body.tv input:focus, body.tv summary:focus {
     outline: 0.5vh solid #fff;
     outline-offset: 0.35vh;
-    box-shadow: 0 0 0 1.3vh color-mix(in srgb, var(--accent) 35%, transparent);
+    box-shadow: 0 0 0 1.3vh rgba(30, 215, 96, 0.35);
   }
   body.tv .controls button:focus, body.tv .play-fab:focus { transform: scale(1.06); }
   body.tv .card:focus .face { box-shadow: 0 0 0 0.8vh #fff, 0 24px 60px rgba(0, 0, 0, 0.55); }
@@ -715,7 +722,7 @@
       <div class="card-wrap">
         <div class="card" id="card" role="button" tabindex="0" aria-label="Carta. Doble toque para darle la vuelta">
           <div class="face qr" id="faceQr"></div>
-          <div class="face info"><div id="faceInfo" style="position:absolute;inset:0"></div><div class="stamp">SALTADA</div></div>
+          <div class="face info"><div id="faceInfo" style="position:absolute;top:0;right:0;bottom:0;left:0"></div><div class="stamp">SALTADA</div></div>
         </div>
       </div>
       <div class="finished">
@@ -1434,9 +1441,11 @@
     renderPlayBtn();
     if (!card) { renderControls(); return; }
 
-    faceQr.replaceChildren(renderQrFace(card));
+    faceQr.textContent = "";
+    faceQr.appendChild(renderQrFace(card));
     const info = renderInfoFace(card);
-    faceInfo.replaceChildren(info);
+    faceInfo.textContent = "";
+    faceInfo.appendChild(info);
     fitTexts(info);
     document.documentElement.style.setProperty("--glow", card.bg_hex);
   }
@@ -1603,7 +1612,7 @@
       coins: game ? game.startCoins ?? 2 : 2,
       mode: game ? game.mode : "timeline",
       level: level(),
-      filter: structuredClone(game ? game.filter : emptyFilter()),
+      filter: JSON.parse(JSON.stringify(game ? game.filter : emptyFilter())),
       target: game ? game.target : DEFAULT_TARGET,
     };
     $("reshuffleChk").checked = false;
