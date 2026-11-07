@@ -1975,11 +1975,39 @@
     if (!r.ok) throw await apiError(r);
   }
 
+  // La canción se pide como "su álbum, empezando por ella": algunos Spotify (el de Android, al menos)
+  // aceptan { uris: [canción] } con un 204 pero paran la música en vez de reproducirla.
+  const albumOf = new Map();
+  async function playBody(card) {
+    const id = trackId(card);
+    if (!albumOf.has(id)) {
+      try {
+        const r = await spotifyApi(`/tracks/${id}`);
+        const t = r.ok ? await r.json() : null;
+        if (t && t.album && t.album.uri) albumOf.set(id, { context_uri: t.album.uri, offset: { uri: t.uri } });
+      } catch (_) { /* sin álbum: se prueba con la canción sola */ }
+    }
+    return albumOf.get(id) || { uris: [`spotify:track:${id}`] };
+  }
+
   async function spotifyPlay(card, resume = false) {
     setPlayState(card.id, "loading");
     try {
-      await playOn(playCfg.device, resume ? null : { uris: [`spotify:track:${trackId(card)}`] });
-      if (playing.id === card.id) setPlayState(card.id, "playing");
+      await playOn(playCfg.device, resume ? null : await playBody(card));
+      // Spotify responde 204 aunque el dispositivo no haga caso (app dormida): se comprueba que suena
+      await sleep(2500);
+      if (playing.id !== card.id) return;
+      const r = await spotifyApi("/me/player");
+      const st = r.status === 200 ? await r.json() : null;
+      if (playing.id !== card.id) return;
+      if (st && st.is_playing && st.item) {
+        setPlayState(card.id, "playing");
+        // Repetir la canción: si termina, que no pase a la siguiente del disco (con la música ya sonando)
+        if (!resume && st.repeat_state !== "track") spotifyApi("/me/player/repeat?state=track", { method: "PUT" }).catch(() => {});
+      } else {
+        setPlayState(null, "idle");
+        notify("Spotify no responde. Abre la app de Spotify en el dispositivo (o pon algo a sonar) y vuelve a pulsar ▶.", "bad");
+      }
     } catch (e) {
       if (playing.id === card.id) setPlayState(null, "idle");
       reportPlayError(e);
