@@ -599,66 +599,87 @@
   .pair-qr:empty { display: none; }
 
   /* ---- Modo TV: pantalla grande, mando a distancia ---- */
+  /* Unidad de TV (--u = 1% del alto real de la ventana × tamaño elegido): la calcula el JS, porque
+     algunos navegadores de TV (LG) dan a vh un valor mayor que la zona visible */
+  :root { --u: 1vh; --dz: 1.3; --dw: min(68vw, 480px); --dh: 70vh; }
   .tv-keys { display: none; }
   body.tv {
-    --card: max(160px, min(83vh, 42vw));
+    --card: max(160px, min(calc(83 * var(--u)), 42vw));
     grid-template-columns: var(--card) minmax(0, 1fr);
     grid-template-rows: auto auto minmax(0, 1fr);
     column-gap: 4vw;
-    padding: 4vh 5vw;              /* zona segura: algunas TV recortan los bordes */
+    padding: calc(4 * var(--u)) 5vw;              /* zona segura: algunas TV recortan los bordes */
   }
-  body.tv header { grid-column: 1 / -1; padding: 0 0 2vh; }
+  body.tv header { grid-column: 1 / -1; padding: 0 0 calc(2 * var(--u)); }
   body.tv main { grid-column: 1; grid-row: 2 / 4; padding: 0; }
-  body.tv .turn { grid-column: 2; grid-row: 2; padding: 0; gap: 1.4vh; }
-  body.tv footer { grid-column: 2; grid-row: 3; justify-content: center; padding: 0; gap: 2.2vh; }
-  body.tv .brand { font-size: 3.4vh; }
-  body.tv .counter { font-size: 2.8vh; }
-  body.tv button { font-size: 3vh; padding: 1.8vh 2.6vh; }
-  body.tv button svg { width: 3.4vh; height: 3.4vh; }
-  body.tv .icon-btn { padding: 1.2vh; }
-  body.tv .turn-title { font-size: 5.2vh; }
-  body.tv .teams { max-width: none; gap: 1vh; }
-  body.tv .chip { font-size: 2.6vh; padding: 0.7vh 1.6vh 0.7vh 1.2vh; gap: 1vh; }
-  body.tv .chip .swatch { width: 1.6vh; height: 1.6vh; }
-  body.tv .coin-icon, body.tv .chip .cards-count svg { width: 2.4vh; height: 2.4vh; }
-  body.tv .skip-note { font-size: 2.8vh; min-height: 3.4vh; text-align: center; }
+  body.tv .turn { grid-column: 2; grid-row: 2; padding: 0; gap: calc(1.4 * var(--u)); }
+  body.tv footer { grid-column: 2; grid-row: 3; justify-content: center; padding: 0; gap: calc(2.2 * var(--u)); }
+  body.tv .brand { font-size: calc(3.4 * var(--u)); }
+  body.tv .counter { font-size: calc(2.8 * var(--u)); }
+  body.tv button { font-size: calc(3 * var(--u)); padding: calc(1.8 * var(--u)) calc(2.6 * var(--u)); }
+  body.tv button svg { width: calc(3.4 * var(--u)); height: calc(3.4 * var(--u)); }
+  body.tv .icon-btn { padding: calc(1.2 * var(--u)); }
+  body.tv .turn-title { font-size: calc(5.2 * var(--u)); }
+  body.tv .teams { max-width: none; gap: calc(1 * var(--u)); }
+  body.tv .chip { font-size: calc(2.6 * var(--u)); padding: calc(0.7 * var(--u)) calc(1.6 * var(--u)) calc(0.7 * var(--u)) calc(1.2 * var(--u)); gap: calc(1 * var(--u)); }
+  body.tv .chip .swatch { width: calc(1.6 * var(--u)); height: calc(1.6 * var(--u)); }
+  body.tv .coin-icon, body.tv .chip .cards-count svg { width: calc(2.4 * var(--u)); height: calc(2.4 * var(--u)); }
+  body.tv .skip-note { font-size: calc(2.8 * var(--u)); min-height: calc(3.4 * var(--u)); text-align: center; }
   body.tv .timeline-wrap { width: 100%; }
-  body.tv .timeline { gap: 0.8vh; padding: 1.6vh 1.2vh; }
-  body.tv .mini { width: 11vh; height: 11vh; font-size: 1.7vh; border-radius: 1.4vh; }
-  body.tv .mini b { font-size: 3.4vh; }
-  body.tv .mini small { font-size: 1.7vh; }
-  body.tv .slot { width: 4.6vh; height: 11vh; padding: 0; font-size: 3vh; border-radius: 1.4vh; }
-  body.tv .slot.selected { width: 11vh; font-size: 4.6vh; }
-  body.tv .slot.token { width: 6.4vh; }
-  body.tv .slot.token svg { width: 3vh; height: 3vh; }
-  body.tv .timeline-empty { font-size: 2.6vh; }
-  body.tv .challenge-bar { font-size: 2.4vh; min-height: 6vh; gap: 1vh; }
-  body.tv .challenge-bar button { font-size: 2.4vh; padding: 0.8vh 1.6vh; }
-  body.tv .controls, body.tv.easy .controls { width: 100%; gap: 1.4vh; }
-  body.tv .controls button { padding: 2.2vh 1.4vh; white-space: normal; min-width: 0; }
+  body.tv .timeline { gap: calc(0.8 * var(--u)); padding: calc(1.6 * var(--u)) calc(1.2 * var(--u)); }
+  body.tv .mini { width: calc(11 * var(--u)); height: calc(11 * var(--u)); font-size: calc(1.7 * var(--u)); border-radius: calc(1.4 * var(--u)); }
+  body.tv .mini b { font-size: calc(3.4 * var(--u)); }
+  body.tv .mini small { font-size: calc(1.7 * var(--u)); }
+  body.tv .slot { width: calc(4.6 * var(--u)); height: calc(11 * var(--u)); padding: 0; font-size: calc(3 * var(--u)); border-radius: calc(1.4 * var(--u)); }
+  body.tv .slot.selected { width: calc(11 * var(--u)); font-size: calc(4.6 * var(--u)); }
+  body.tv .slot.token { width: calc(6.4 * var(--u)); }
+  body.tv .slot.token svg { width: calc(3 * var(--u)); height: calc(3 * var(--u)); }
+  body.tv .timeline-empty { font-size: calc(2.6 * var(--u)); }
+  body.tv .challenge-bar { font-size: calc(2.4 * var(--u)); min-height: calc(6 * var(--u)); gap: calc(1 * var(--u)); }
+  body.tv .challenge-bar button { font-size: calc(2.4 * var(--u)); padding: calc(0.8 * var(--u)) calc(1.6 * var(--u)); }
+  body.tv .controls, body.tv.easy .controls { width: 100%; gap: calc(1.4 * var(--u)); }
+  body.tv .controls button { padding: calc(2.2 * var(--u)) calc(1.4 * var(--u)); white-space: normal; min-width: 0; }
   body.tv .controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   body.tv.hard .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   body.tv.easy .controls { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   body.tv .label-long { display: none; }
-  body.tv .hint { font-size: 2.3vh; }
+  body.tv .hint { font-size: calc(2.3 * var(--u)); }
   body.tv .hint .touch, body.tv .hint .keys { display: none; }
   body.tv .tv-keys { display: inline; }
-  body.tv .play-fab { width: 10vh; height: 10vh; padding: 0; }
-  body.tv .play-fab svg { width: 4.6vh; height: 4.6vh; }
-  body.tv .finished h2 { font-size: 4vh; }
-  body.tv .finished p { font-size: 2.6vh; }
-  body.tv .toast { font-size: 2.8vh; padding: 2vh 3vh; bottom: 6vh; max-width: 70vw; }
-  body.tv dialog { zoom: 1.3; width: min(68vw, 480px); max-height: 70vh; }
+  body.tv .play-fab { width: calc(10 * var(--u)); height: calc(10 * var(--u)); padding: 0; }
+  body.tv .play-fab svg { width: calc(4.6 * var(--u)); height: calc(4.6 * var(--u)); }
+  body.tv .finished h2 { font-size: calc(4 * var(--u)); }
+  body.tv .finished p { font-size: calc(2.6 * var(--u)); }
+  body.tv .toast { font-size: calc(2.8 * var(--u)); padding: calc(2 * var(--u)) calc(3 * var(--u)); bottom: calc(6 * var(--u)); max-width: 70vw; }
+  body.tv dialog { zoom: var(--dz); width: var(--dw); max-height: var(--dh); }
+
+  /* Los diálogos se amplían enteros con zoom: sus botones conservan las medidas normales */
+  body.tv dialog button { font-size: 15px; padding: 13px 18px; }
+  body.tv dialog button svg { width: 18px; height: 18px; }
+  body.tv dialog .segmented button { padding: 8px 14px; font-size: 14px; }
+  body.tv dialog .opts button { padding: 6px 11px; font-size: 13px; }
+  body.tv dialog .stepper button { width: 38px; height: 38px; padding: 0; font-size: 20px; }
+  body.tv dialog .link-btn { padding: 2px 8px; font-size: 12px; }
+  body.tv dialog button:focus, body.tv dialog input:focus, body.tv dialog summary:focus { outline-width: 3px; outline-offset: 2px; box-shadow: 0 0 0 7px rgba(30, 215, 96, 0.35); }
+  /* Aceptar / Listo siempre a la vista aunque el diálogo tenga que desplazarse */
+  body.tv .dlg > .dlg-actions:last-child {
+    position: sticky;
+    bottom: -22px;
+    margin: 0 -22px -22px;
+    padding: 14px 22px 22px;
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+  }
 
   /* Foco muy visible para manejar todo con las flechas del mando */
   body.tv :focus { outline: none; }
   body.tv button:focus, body.tv input:focus, body.tv summary:focus {
-    outline: 0.5vh solid #fff;
-    outline-offset: 0.35vh;
-    box-shadow: 0 0 0 1.3vh rgba(30, 215, 96, 0.35);
+    outline: calc(0.5 * var(--u)) solid #fff;
+    outline-offset: calc(0.35 * var(--u));
+    box-shadow: 0 0 0 calc(1.3 * var(--u)) rgba(30, 215, 96, 0.35);
   }
   body.tv .controls button:focus, body.tv .play-fab:focus { transform: scale(1.06); }
-  body.tv .card:focus .face { box-shadow: 0 0 0 0.8vh #fff, 0 24px 60px rgba(0, 0, 0, 0.55); }
+  body.tv .card:focus .face { box-shadow: 0 0 0 calc(0.8 * var(--u)) #fff, 0 24px 60px rgba(0, 0, 0, 0.55); }
 
   @media (max-width: 400px) {
     .brand { display: none; }
@@ -767,6 +788,14 @@
     <form method="dialog" class="dlg">
       <h2>Reproducción y TV</h2>
       <label class="check"><input type="checkbox" id="tvChk"> Modo TV: pantalla grande y manejo con el mando</label>
+      <div class="field" id="tvScaleField">
+        <label>Tamaño en la TV</label>
+        <div class="stepper">
+          <button type="button" data-tvscale="-1" aria-label="Más pequeño">−</button>
+          <output id="tvScaleOut">100%</output>
+          <button type="button" data-tvscale="1" aria-label="Más grande">+</button>
+        </div>
+      </div>
       <div class="field col">
         <label>Al pulsar ▶ o la carta</label>
         <div class="segmented wrap" id="playMethodSeg">
@@ -2206,6 +2235,10 @@
   function renderSettings() {
     const method = playCfg.method || "";
     $("tvChk").checked = tvOn;
+    $("tvScaleField").hidden = !tvOn;
+    $("tvScaleOut").textContent = `${Math.round(tvScale * 100)}%`;
+    settingsDlg.querySelector('[data-tvscale="-1"]').disabled = tvScale <= TV_SCALES[0];
+    settingsDlg.querySelector('[data-tvscale="1"]').disabled = tvScale >= TV_SCALES[TV_SCALES.length - 1];
     $("playMethodSeg").querySelectorAll("[data-method]").forEach((b) => b.classList.toggle("on", b.dataset.method === method));
     $("playHelp").textContent = PLAY_HELP[method] || "Elige cómo quieres que suene la canción de cada carta.";
     $("connectBox").hidden = method !== "connect";
@@ -2249,6 +2282,8 @@
   }
 
   settingsDlg.addEventListener("click", (e) => {
+    const z = e.target.closest("[data-tvscale]");
+    if (z) { setTvScale(+z.dataset.tvscale); return; }
     const m = e.target.closest("[data-method]");
     if (m) {
       playCfg.method = m.dataset.method;
@@ -2301,8 +2336,41 @@
     applyTv();
   }
 
+  // Tamaño en la TV: todo se mide con el alto real de la ventana (innerHeight) y un factor elegible
+  const TV_SCALE_KEY = "music-cards.tvscale.v1";
+  const TV_SCALES = [0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3];
+  let tvScale = TV_SCALES.includes(load(TV_SCALE_KEY)) ? load(TV_SCALE_KEY) : 1;
+
+  function applyTvScale() {
+    const root = document.documentElement.style;
+    if (!tvOn) {
+      ["--u", "--dz", "--dw", "--dh", "--vh100"].forEach((v) => root.removeProperty(v));
+      return;
+    }
+    const h = window.innerHeight, w = window.innerWidth;
+    // Diálogos: diseñados en px; se amplían según la pantalla (1,3× a 540 px de alto) y su tamaño
+    // máximo se da en px ya divididos por el zoom, para que quepan siempre en la ventana
+    const dz = Math.max(1, (h / 540) * 1.3 * tvScale);
+    root.setProperty("--u", `${(h / 100) * tvScale}px`);
+    root.setProperty("--vh100", `${h}px`);
+    root.setProperty("--dz", dz.toFixed(3));
+    root.setProperty("--dw", `${Math.round(Math.min(480, (w * 0.9) / dz))}px`);
+    root.setProperty("--dh", `${Math.round((h * 0.92) / dz)}px`);
+  }
+  window.addEventListener("resize", applyTvScale);
+
+  function setTvScale(delta) {
+    const i = Math.min(TV_SCALES.length - 1, Math.max(0, TV_SCALES.indexOf(tvScale) + delta));
+    tvScale = TV_SCALES[i];
+    save(TV_SCALE_KEY, tvScale);
+    applyTvScale();
+    renderSettings();
+  }
+
   function applyTv() {
     document.body.classList.toggle("tv", tvOn);
+    applyTvScale();
+    if (settingsDlg.open) renderSettings();
     if (tvOn && !historyGuard) { history.pushState({ tv: 1 }, ""); historyGuard = true; }
     if (tvOn && !openDialog()) focusDefault();
   }
